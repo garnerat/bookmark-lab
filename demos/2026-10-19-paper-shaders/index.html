@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paper Shaders: live mesh gradient playground</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:system-ui,sans-serif;color:#fff;background:#111}
+  #stage{position:fixed;inset:0}
+  .panel{position:fixed;top:16px;left:16px;width:300px;max-width:calc(100% - 32px);padding:16px;border-radius:14px;
+    background:rgba(0,0,0,.45);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-size:14px;line-height:1.4}
+  h1{font-size:17px;margin:0 0 4px}
+  p{margin:0 0 12px;opacity:.85}
+  label{display:flex;justify-content:space-between;margin-top:10px}
+  input[type=range]{width:100%}
+  .swatches{display:flex;gap:6px;margin-top:6px}
+  .swatches input{width:36px;height:28px;border:0;padding:0;background:none;cursor:pointer}
+  .row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  button{flex:1;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+  button:hover{background:rgba(255,255,255,.22)}
+  .note{margin-top:14px;font-size:12px;opacity:.8}
+  a{color:#fff}
+  #err{display:none;color:#ffb4b4;margin-top:10px}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="panel">
+  <h1>Paper Shaders playground</h1>
+  <p>The page background is a live WebGL mesh gradient from <a href="https://github.com/paper-design/shaders">@paper-design/shaders</a>, loaded from a CDN. Move the sliders to change it.</p>
+
+  <div>Colors</div>
+  <div class="swatches" id="swatches"></div>
+
+  <label>Distortion <span id="v-distortion"></span></label>
+  <input type="range" id="distortion" min="0" max="1" step="0.01" value="0.8">
+  <label>Swirl <span id="v-swirl"></span></label>
+  <input type="range" id="swirl" min="0" max="1" step="0.01" value="0.1">
+  <label>Grain overlay <span id="v-grain"></span></label>
+  <input type="range" id="grain" min="0" max="1" step="0.01" value="0.15">
+  <label>Speed <span id="v-speed"></span></label>
+  <input type="range" id="speed" min="-2" max="2" step="0.05" value="0.6">
+
+  <div class="row">
+    <button id="shuffle">Shuffle colors</button>
+    <button id="copy">Copy config</button>
+  </div>
+  <div id="err">WebGL isn't available in this browser, so the shader can't render.</div>
+
+  <div class="note">
+    Source: bookmarked from <a href="https://x.com/RoundtableSpace/status/2110255627704455591">@RoundtableSpace on X</a>
+    (“10 GitHub repos that turn Claude Code and Codex into elite UI designers”, #5 Paper Shaders).
+  </div>
+</div>
+
+<script type="module">
+import { ShaderMount, meshGradientFragmentShader, getShaderColorFromString, defaultObjectSizing, ShaderFitOptions }
+  from 'https://esm.sh/@paper-design/shaders@0.0.81';
+
+let colors = ['#e0eaff', '#241d9a', '#f75092', '#9f50d3'];
+const $ = id => document.getElementById(id);
+const sizing = {
+  u_fit: ShaderFitOptions.cover, u_scale: defaultObjectSizing.scale, u_rotation: defaultObjectSizing.rotation,
+  u_originX: defaultObjectSizing.originX, u_originY: defaultObjectSizing.originY, u_offsetX: defaultObjectSizing.offsetX,
+  u_offsetY: defaultObjectSizing.offsetY, u_worldWidth: defaultObjectSizing.worldWidth, u_worldHeight: defaultObjectSizing.worldHeight,
+};
+const uniforms = () => ({
+  ...sizing,
+  u_colors: colors.map(getShaderColorFromString),
+  u_colorsCount: colors.length,
+  u_distortion: +$('distortion').value,
+  u_swirl: +$('swirl').value,
+  u_grainMixer: 0,
+  u_grainOverlay: +$('grain').value,
+});
+
+let mount;
+try {
+  mount = new ShaderMount($('stage'), meshGradientFragmentShader, uniforms(), undefined, +$('speed').value);
+} catch (e) {
+  console.error(e); $('err').style.display = 'block';
+}
+
+function renderSwatches() {
+  const box = $('swatches'); box.innerHTML = '';
+  colors.forEach((c, i) => {
+    const inp = document.createElement('input');
+    inp.type = 'color'; inp.value = c;
+    inp.addEventListener('input', () => { colors[i] = inp.value; update(); });
+    box.appendChild(inp);
+  });
+}
+function labels() {
+  for (const [id, out] of [['distortion','v-distortion'],['swirl','v-swirl'],['grain','v-grain'],['speed','v-speed']])
+    $(out).textContent = (+$(id).value).toFixed(2);
+}
+function update() { labels(); mount?.setUniforms(uniforms()); }
+
+['distortion','swirl','grain'].forEach(id => $(id).addEventListener('input', update));
+$('speed').addEventListener('input', () => { labels(); mount?.setSpeed(+$('speed').value); });
+$('shuffle').addEventListener('click', () => {
+  colors = colors.map(() => '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0'));
+  renderSwatches(); update();
+});
+$('copy').addEventListener('click', async () => {
+  const cfg = { colors, distortion: +$('distortion').value, swirl: +$('swirl').value,
+    grainOverlay: +$('grain').value, speed: +$('speed').value };
+  const txt = `<MeshGradient ${Object.entries(cfg).map(([k,v]) => `${k}={${JSON.stringify(v)}}`).join(' ')} />`;
+  try { await navigator.clipboard.writeText(txt); $('copy').textContent = 'Copied!'; }
+  catch { prompt('Copy this:', txt); }
+  setTimeout(() => $('copy').textContent = 'Copy config', 1200);
+});
+renderSwatches(); labels();
+</script>
+</body>
+</html>
