@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Local email triage — Bookmark Lab</title>
+<meta name="description" content="Triage fictional HVAC emails in the browser with a small instruct model. Nothing is sent to a server after the model download.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238f3d2b'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <h1>Inbox triage that never leaves your browser</h1>
+    <p class="lede">Queen City Comfort is a fictional Cincinnati HVAC and plumbing shop. This page loads a small open instruct model in the tab and turns each email into a fixed JSON record: a summary, action items, events, and a priority of high, medium, or low.</p>
+    <p class="source">The idea is borrowed from <a href="https://x.com/barronnotbaron/status/2110821341687664874">@barronnotbaron on X</a>. They ran Ternary Bonsai 2 4B locally on a MacBook, 32 streams at once, turning 250 emails into JSON (summary, action items, events, priority) at 700+ tokens/sec in under 4 GB. High-volume, low-stakes extraction can stay on hardware you already own. This demo is that job shrunk to one browser tab and a 0.5B model, so the drafts are rougher and they run one at a time.</p>
+  </header>
+
+  <section class="notice" aria-label="Privacy">
+    <p><strong>Nothing is sent to any server after the model download.</strong> Sample emails and anything you paste are processed in this tab only. There is no backend and no API key.</p>
+    <p>The first visit downloads <strong>about 490 MB</strong> when WebGPU is available (461 MB of q4f16 weights, a 7 MB tokenizer, and a 21 MB ONNX runtime) or <strong>about 780 MB</strong> for the WASM fallback (750 MB of q4 weights, plus the same tokenizer and runtime). The browser caches those files after that.</p>
+  </section>
+
+  <section class="loader" aria-label="Model">
+    <div class="loader-row">
+      <button id="load-model" type="button">Load model</button>
+      <span id="runtime-note" class="runtime-note">Model: onnx-community/Qwen2.5-0.5B-Instruct via Transformers.js. WebGPU when this browser can use it, otherwise WASM.</span>
+    </div>
+    <div id="progress-wrap" class="progress-wrap" hidden>
+      <div id="progress-bar" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Model download"></div>
+    </div>
+    <p id="model-status" role="status" aria-live="polite">The model stays unloaded until you press Load model.</p>
+  </section>
+
+  <div class="layout">
+    <section aria-label="Sample inbox">
+      <div class="section-head">
+        <h2>Sample inbox</h2>
+        <button id="triage-all" type="button" disabled>Triage all</button>
+      </div>
+      <div id="inbox" class="inbox"></div>
+    </section>
+
+    <section aria-label="Triage results">
+      <div class="section-head">
+        <h2>Triage</h2>
+      </div>
+      <p id="overall" class="overall">No emails triaged yet. A 0.5B model writes a first pass, not a finished dispatcher.</p>
+      <div class="sort" role="group" aria-label="Sort the prioritized list">
+        <button type="button" data-sort="priority" aria-pressed="true">Priority</button>
+        <button type="button" data-sort="latency" aria-pressed="false">Latency</button>
+        <button type="button" data-sort="inbox" aria-pressed="false">Inbox order</button>
+      </div>
+      <div id="priority-list"></div>
+      <div id="cards" class="cards"></div>
+    </section>
+  </div>
+
+  <section class="paste">
+    <h2>Paste your own email</h2>
+    <p>Processed locally only. The text below is not uploaded.</p>
+    <textarea id="custom-text" rows="8" placeholder="From: Alex Rivera &lt;alex@example.com&gt;&#10;Subject: Furnace quote&#10;&#10;Can someone look at the furnace on Elm this week?"></textarea>
+    <button id="run-custom" type="button" disabled>Triage pasted email</button>
+  </section>
+
+  <footer>
+    <p>Source post: <a href="https://x.com/barronnotbaron/status/2110821341687664874">https://x.com/barronnotbaron/status/2110821341687664874</a></p>
+    <p>Model card: <a href="https://huggingface.co/onnx-community/Qwen2.5-0.5B-Instruct">onnx-community/Qwen2.5-0.5B-Instruct</a>. Weights run here through <a href="https://huggingface.co/docs/transformers.js">Transformers.js</a> 3.8.1. Queen City Comfort, the sample customers, and the addresses are fictional.</p>
+  </footer>
+</div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
