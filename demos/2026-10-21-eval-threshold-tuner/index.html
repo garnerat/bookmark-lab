@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eval judge threshold tuner — Bookmark Lab</title>
+<meta name="description" content="Tune the cutoff on a synthetic eval judge. Watch precision, recall, cost, and calibration change. Example data only.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238f3d2b'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Synthetic eval · Lumen Bike Co.</p>
+    <h1>Tune the judge before you trust 0.50</h1>
+    <p class="lede">A judge in an eval returns a score from 0 to 1. A cutoff turns that score into a decision. 0.50 is a common default, and it is only a guess. This page lets you move the cutoff and see which mistakes you take.</p>
+    <p class="source">The idea is from <a href="https://x.com/HamelHusain/status/2112588257104216294">Hamel Husain’s post</a> about the essay <a href="https://hamelhusain.substack.com/p/how-to-use-decision-models-for-evals">How To Use Decision Models for Evals</a> by Hamel Husain and Antaripa Saha: choose the decision model on purpose, tune its threshold instead of assuming 0.50, and learn what the scores mean. In that essay the score is a probability of failure. Here the score is the chance a support draft is good enough to send. Same kind of decision, labels turned around.</p>
+  </header>
+
+  <section class="notice" aria-label="Synthetic data">
+    <p><strong>Synthetic example data.</strong> <span id="data-count">160</span> made-up support drafts for a fictional bike shop. The labels follow the shop rules below. The three judges were constructed for this page. Nothing here is a real customer, a live model score, or a result from the essay. The rows are in <a href="./data.js">data.js</a>.</p>
+  </section>
+
+  <section class="explainer">
+    <p>Drafts at or above the cutoff would be sent to the customer. Drafts below it would be held for a person. <strong>Precision</strong> is the share of sent drafts that are actually good. <strong>Recall</strong> is the share of good drafts that get sent. A <strong>false pass</strong> is a bad draft that reaches the customer. A <strong>false fail</strong> is a good draft a person has to re-check.</p>
+    <p>The cost slider asks which mistake is more expensive, then marks the cutoff with the lowest total on these drafts. The reliability chart asks a different question: when the judge says 0.80, are about 80% of those drafts actually good? The calibrated judge was built to land near that line. The other two were bent on purpose. On a real eval you plot the chart to find out which kind of judge you have.</p>
+  </section>
+
+  <section class="panel controls" aria-label="Judge, cutoff, and cost">
+    <div class="judges" role="group" aria-label="Synthetic judge">
+      <button type="button" data-judge="calibrated" aria-pressed="true">Calibrated</button>
+      <button type="button" data-judge="overconfident" aria-pressed="false">Overconfident</button>
+      <button type="button" data-judge="weak" aria-pressed="false">Weak</button>
+    </div>
+    <p id="judge-blurb" class="blurb"></p>
+
+    <div class="sliders">
+      <div>
+        <label for="threshold">Send drafts scored at or above <strong id="threshold-label">0.50</strong></label>
+        <input id="threshold" type="range" min="0" max="1" step="0.01" value="0.50" aria-describedby="readout">
+        <div class="row">
+          <button type="button" id="use-default" class="secondary">Use 0.50</button>
+          <button type="button" id="use-best" class="secondary">Use cheapest cutoff</button>
+        </div>
+      </div>
+      <div>
+        <label for="cost">A bad reply that reaches a customer costs <strong id="cost-label">5×</strong> a person re-checking a good one</label>
+        <input id="cost" type="range" min="1" max="20" step="1" value="5" aria-describedby="cost-note">
+        <p id="cost-note" class="hint">Changing this ratio does not rescore the drafts. It only moves the recommended cutoff. Cost = (bad drafts sent) × N + (good drafts held).</p>
+      </div>
+    </div>
+    <p id="readout" class="readout" role="status"></p>
+  </section>
+
+  <section aria-label="Metrics">
+    <div class="metrics">
+      <article class="metric">
+        <span class="metric-k">Precision</span>
+        <strong id="m-precision">—</strong>
+        <span class="hint" id="m-precision-hint"></span>
+      </article>
+      <article class="metric">
+        <span class="metric-k">Recall</span>
+        <strong id="m-recall">—</strong>
+        <span class="hint" id="m-recall-hint"></span>
+      </article>
+      <article class="metric">
+        <span class="metric-k">F1</span>
+        <strong id="m-f1">—</strong>
+        <span class="hint">Harmonic mean of precision and recall</span>
+      </article>
+      <article class="metric metric-bad">
+        <span class="metric-k">False passes</span>
+        <strong id="m-fp">—</strong>
+        <span class="hint">Bad drafts sent</span>
+      </article>
+      <article class="metric">
+        <span class="metric-k">False fails</span>
+        <strong id="m-fn">—</strong>
+        <span class="hint">Good drafts held</span>
+      </article>
+      <article class="metric">
+        <span class="metric-k">Cost</span>
+        <strong id="m-cost">—</strong>
+        <span class="hint" id="m-cost-hint">At this ratio</span>
+      </article>
+    </div>
+  </section>
+
+  <div class="layout-split">
+    <section class="panel" aria-label="Confusion matrix">
+      <h2>Confusion matrix</h2>
+      <p class="caption">Click a cell to list those drafts.</p>
+      <div class="matrix" role="group" aria-label="Confusion matrix">
+        <div class="matrix-corner"></div>
+        <div class="matrix-col">Sent to customer</div>
+        <div class="matrix-col">Held for a person</div>
+        <div class="matrix-row">Actually good</div>
+        <button type="button" class="cell" data-filter="tp" id="cell-tp">
+          <span class="cell-n" id="n-tp">0</span>
+          <span class="cell-k">True pass</span>
+        </button>
+        <button type="button" class="cell" data-filter="fn" id="cell-fn">
+          <span class="cell-n" id="n-fn">0</span>
+          <span class="cell-k">False fail · ×1</span>
+        </button>
+        <div class="matrix-row">Actually bad</div>
+        <button type="button" class="cell cell-fp" data-filter="fp" id="cell-fp">
+          <span class="cell-n" id="n-fp">0</span>
+          <span class="cell-k" id="fp-weight">False pass · ×5</span>
+        </button>
+        <button type="button" class="cell" data-filter="tn" id="cell-tn">
+          <span class="cell-n" id="n-tn">0</span>
+          <span class="cell-k">True fail</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Cutoff comparison">
+      <h2>Three cutoffs</h2>
+      <p class="caption">Searched from 0.00 to 1.00 in steps of 0.01 on these same drafts. Ties go to the higher cutoff. Not a held-out test.</p>
+      <table class="costs">
+        <thead>
+          <tr><th>Cutoff</th><th>Bad sent</th><th>Good held</th><th>Cost</th></tr>
+        </thead>
+        <tbody>
+          <tr id="row-default"><th scope="row">0.50 default</th><td id="d-fp"></td><td id="d-fn"></td><td id="d-cost"></td></tr>
+          <tr id="row-current"><th scope="row" id="current-name">This cutoff</th><td id="c-fp"></td><td id="c-fn"></td><td id="c-cost"></td></tr>
+          <tr id="row-best"><th scope="row" id="best-name">Cheapest</th><td id="b-fp"></td><td id="b-fn"></td><td id="b-cost"></td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <div class="charts">
+    <section class="panel" aria-label="Score histogram">
+      <h2>Scores by true label</h2>
+      <p class="caption">Solid bars are good drafts. Hatched bars are bad drafts. The line is this cutoff. Overlap is why the cutoff matters.</p>
+      <canvas id="hist" width="640" height="240" aria-hidden="true"></canvas>
+    </section>
+    <section class="panel" aria-label="Precision recall curve">
+      <h2>Precision–recall</h2>
+      <p class="caption">Each point is a cutoff. Higher means the sent pile is cleaner. Farther right sends more of the good drafts. The dashed line is the share of drafts that are good.</p>
+      <canvas id="pr" width="640" height="240" aria-hidden="true"></canvas>
+      <p class="legend"><span class="swatch ink"></span> This cutoff <span class="swatch open"></span> 0.50 <span class="swatch diamond"></span> Cheapest</p>
+    </section>
+    <section class="panel" aria-label="Reliability chart">
+      <h2>What a score means</h2>
+      <p class="caption">Each dot is 20 drafts with similar scores. A dot on the dashed line means the score matches how often those drafts are actually good.</p>
+      <canvas id="cal" width="640" height="240" aria-hidden="true"></canvas>
+      <p id="cal-note" class="hint"></p>
+      <p id="brier" class="hint"></p>
+    </section>
+    <section class="panel" aria-label="Cost curve">
+      <h2>Cost across cutoffs</h2>
+      <p class="caption">Vertical line: this cutoff. Diamond: cheapest cutoff at the current cost ratio.</p>
+      <canvas id="cost-chart" width="640" height="240" aria-hidden="true"></canvas>
+    </section>
+  </div>
+
+  <section class="panel" aria-label="Drafts">
+    <div class="section-head">
+      <h2>Drafts</h2>
+      <p id="list-count" class="hint"></p>
+    </div>
+    <details open>
+      <summary>Shop rules the labels use</summary>
+      <ul id="facts"></ul>
+    </details>
+    <div class="filters" role="group" aria-label="Filter drafts">
+      <button type="button" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" data-filter="send" aria-pressed="false">Sent</button>
+      <button type="button" data-filter="hold" aria-pressed="false">Held</button>
+      <button type="button" data-filter="fp" aria-pressed="false">False passes</button>
+      <button type="button" data-filter="fn" aria-pressed="false">False fails</button>
+    </div>
+    <div id="list" class="examples"></div>
+  </section>
+
+  <footer>
+    <p>Source post: <a href="https://x.com/HamelHusain/status/2112588257104216294">https://x.com/HamelHusain/status/2112588257104216294</a></p>
+    <p>Essay: <a href="https://hamelhusain.substack.com/p/how-to-use-decision-models-for-evals">How To Use Decision Models for Evals</a> by Hamel Husain and Antaripa Saha.</p>
+    <p>Lumen Bike Co., the drafts, the labels, and the three judges are synthetic example data made for this page.</p>
+  </footer>
+</div>
+<script src="./metrics.js"></script>
+<script src="./data.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
