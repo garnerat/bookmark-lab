@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check your agent's code: CRAP, DRY, and mutation tests — Bookmark Lab</title>
+<meta name="description" content="Paste a small JavaScript module and a few asserts. The page scores change risk, flags duplicate blocks, and shows which mutants the tests miss. Everything runs in the browser.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238f3d2b'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">In the browser · nothing is uploaded</p>
+    <h1>Check your agent's code: CRAP, DRY, and mutation tests</h1>
+    <p class="lede">Paste a small JavaScript module an agent wrote, plus a few tests. This page scores each function for change risk, flags blocks that are the same shape, and rewrites the code in small ways to see which edits the tests still accept.</p>
+    <p class="source">The routine is from <a href="https://x.com/unclebobmartin/status/2112921741689237915">Uncle Bob Martin’s post</a>. He talks a system over with his agents, they write a spec and build it in an hour or two, then he has them run the crapper, dryer, and mutator. Those checks find bugs, oversights, and dead code. Crapper is the CRAP score, dryer finds duplicate code, and the mutator is mutation testing. His tools are on <a href="https://github.com/unclebob">github.com/unclebob</a>, including <a href="https://github.com/unclebob/crapper">crapper</a> and <a href="https://github.com/unclebob/dryer">dryer</a>. This page is a small in-browser version of that idea for one snippet, not those tools.</p>
+  </header>
+
+  <section class="explainer" aria-labelledby="why-title">
+    <h2 id="why-title">Why this matters when agents write your code</h2>
+    <p>An agent can turn a conversation into a working module in an hour or two. The tests that arrive with it often lock in the path you described and leave the other branches, the copied helper, and the off-by-one alone. A green run is then a weak guarantee.</p>
+    <p>These three checks are a fast second pass on that draft. They do not prove the code is right. They show where a green suite is not much of a guarantee.</p>
+    <ul class="checks">
+      <li><strong>Crapper.</strong> CRAP = complexity² × (1 − coverage)³ + complexity. Complexity is the cyclomatic complexity of one function. Coverage is the fraction of that function the tests actually run. A score of 30 or more is the usual line for a function that is complex and under-tested.</li>
+      <li><strong>Dryer.</strong> Names and literals are stripped out, then sliding token windows look for blocks with the same shape. Those are the copies that will drift apart.</li>
+      <li><strong>Mutator.</strong> Flip a comparison, swap <code>+</code> and <code>-</code>, nudge a boundary constant, negate a condition, or return early. Each mutant is run against the same tests. A survivor is a change the tests cannot see.</li>
+    </ul>
+  </section>
+
+  <section class="notice" aria-label="What runs where">
+    <p><strong>Pasted code stays in this tab.</strong> It runs in a web worker, not on a server. The worker cannot see the page. A tight loop is stopped on a timeout. There is no account, no API key, and no upload.</p>
+  </section>
+
+  <section class="panel editor" aria-label="Module and tests">
+    <div class="examples" role="group" aria-label="Examples">
+      <button type="button" data-example="invoice" aria-pressed="true">Print-shop invoice</button>
+      <button type="button" data-example="deposit" aria-pressed="false">Catering deposit</button>
+      <button type="button" data-example="trip" aria-pressed="false">Appliance trip charge</button>
+    </div>
+    <p id="example-note" class="blurb"></p>
+    <label for="source">Module and tests</label>
+    <textarea id="source" spellcheck="false" aria-describedby="source-hint"></textarea>
+    <p id="source-hint" class="hint">Use a <code>tests</code> array of <code>[name, function]</code> pairs, or functions whose names start with <code>test</code>. Helpers in the sandbox: <code>assert</code>, <code>assertEqual</code>, and <code>assertClose</code> (within 0.001). Ctrl or Cmd plus Enter runs the checks.</p>
+    <div class="row">
+      <button type="button" id="run">Run crapper, dryer, and mutator</button>
+      <p id="status" class="status" role="status" aria-live="polite">Pick an example or paste a module.</p>
+    </div>
+  </section>
+
+  <section id="summary" class="metrics" aria-label="Summary" hidden></section>
+
+  <section id="tests-panel" class="panel" aria-label="Test results" hidden>
+    <h2>Tests</h2>
+    <p class="caption">The original module, before any mutant. Coverage and the mutation score both use this run.</p>
+    <ul id="test-list" class="test-list"></ul>
+  </section>
+
+  <section id="crapper" class="panel" aria-label="Crapper" hidden>
+    <div class="section-head">
+      <h2>Crapper</h2>
+      <p class="formula">CRAP = complexity² × (1 − coverage)³ + complexity</p>
+    </div>
+    <p class="caption">Complexity starts at 1 and adds one for each <code>if</code>, loop, <code>case</code>, <code>catch</code>, <code>?:</code>, <code>&amp;&amp;</code>, <code>||</code>, <code>??</code>, and <code>?.</code>. Coverage is the share of statements in the function that ran. A line in the listing is pink when nothing on it ran, and hatched when only part of it ran.</p>
+    <p id="crap-readout" class="readout"></p>
+    <div class="legend" aria-hidden="true">
+      <span class="swatch low"></span> Under 5, low risk
+      <span class="swatch mid"></span> 5 to 30, worth a look
+      <span class="swatch high"></span> 30 or more
+    </div>
+    <div class="table-wrap">
+      <table class="scores">
+        <thead>
+          <tr>
+            <th scope="col">Function</th>
+            <th scope="col">Line</th>
+            <th scope="col">Complexity</th>
+            <th scope="col">Coverage</th>
+            <th scope="col">CRAP</th>
+          </tr>
+        </thead>
+        <tbody id="crap-body"></tbody>
+      </table>
+    </div>
+    <h3>What the tests ran</h3>
+    <div class="legend" aria-hidden="true">
+      <span class="swatch miss"></span> Never ran
+      <span class="swatch partial"></span> Ran in part
+      <span class="swatch dup"></span> Duplicate block
+    </div>
+    <div id="listing" class="listing"></div>
+  </section>
+
+  <section id="dryer" class="panel" aria-label="Dryer" hidden>
+    <h2>Dryer</h2>
+    <p class="caption">A block is reported when at least four lines share the same shape after identifiers and literals are normalized. Tests are left out of the comparison.</p>
+    <div id="dry-list"></div>
+  </section>
+
+  <section id="mutator" class="panel" aria-label="Mutator" hidden>
+    <div class="section-head">
+      <h2>Mutator</h2>
+      <p id="mutation-score" class="formula"></p>
+    </div>
+    <p class="caption">A handful of mutants, spread across the operators and across functions the tests do and do not reach. A timeout counts as killed: the suite noticed that the run did not finish. The score is killed ÷ (killed + survived).</p>
+    <div id="mutation-bar" class="bar" hidden></div>
+    <div id="mutant-readout" class="readout"></div>
+    <div id="survivors"></div>
+    <details id="killed-wrap">
+      <summary id="killed-summary">Killed mutants</summary>
+      <ul id="killed-list" class="killed"></ul>
+    </details>
+  </section>
+
+  <footer>
+    <p>Source post: <a href="https://x.com/unclebobmartin/status/2112921741689237915">https://x.com/unclebobmartin/status/2112921741689237915</a></p>
+    <p>Tools: <a href="https://github.com/unclebob/crapper">unclebob/crapper</a>, <a href="https://github.com/unclebob/dryer">unclebob/dryer</a>, and the mutate repositories under <a href="https://github.com/unclebob">unclebob</a>. The CRAP formula and the 30-point line are the ones those tools use. Harbor &amp; Pine, North Shore Catering, and North Loop Appliance are fictional shops used as examples.</p>
+    <p>Parsing uses <a href="https://github.com/acornjs/acorn">Acorn</a> 8.15.0 (MIT), vendored in this folder so the page does not call a CDN.</p>
+  </footer>
+</div>
+<noscript><p>This demo needs JavaScript. It still does not send the pasted code anywhere.</p></noscript>
+<script src="./vendor/acorn.min.js"></script>
+<script src="./engine.js"></script>
+<script src="./examples.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
