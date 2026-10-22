@@ -1,0 +1,830 @@
+{
+  "model": {
+    "backend": "local",
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+    "dtype": "bfloat16",
+    "prompt_version": "2",
+    "yes_tokens": {
+      "9454": "Yes",
+      "7414": " Yes",
+      "9693": "yes",
+      "9834": " yes",
+      "14004": "YES",
+      "14080": " YES"
+    },
+    "no_tokens": {
+      "2753": "No",
+      "2308": " No",
+      "2152": "no",
+      "902": " no",
+      "8996": "NO",
+      "5664": " NO"
+    },
+    "prompt_tokens_max": 397,
+    "prompt_tokens_example": 380
+  },
+  "dataset": {
+    "rows": 244,
+    "queries": 40,
+    "tune_queries": 24,
+    "holdout_queries": 16,
+    "inventory": "rows 244\nqueries 40 (tune 24, holdout 16)\norganic: 42 cards, 38 fit, 4 do not\nsubstitution: 121 cards, 43 fit, 78 do not\nsponsored: 81 cards, 40 fit, 41 do not\nirrelevant_substitution tune: 73 cards, 47 positive, 26 negative\nirrelevant_substitution holdout: 48 cards, 31 positive, 17 negative\nrelevant_sponsored tune: 48 cards, 24 positive, 24 negative\nrelevant_sponsored holdout: 33 cards, 16 positive, 17 negative",
+    "sha256": "adcd2e88511a16ffe06b3cceba7297b7f5cbfb96690c6c898f23cb750820e9b2"
+  },
+  "costs": {
+    "irrelevant_substitution": {
+      "fp": 1.0,
+      "fn": 5.0
+    },
+    "relevant_sponsored": {
+      "fp": 4.0,
+      "fn": 1.0
+    }
+  },
+  "score_stats": {
+    "mean_yes_no_mass": 1.0001,
+    "min_yes_no_mass": 0.998047,
+    "max_yes_no_mass": 1.001953,
+    "rows_below_half_mass": 0
+  },
+  "example_highest_p_fit": {
+    "id": "lactose-milk-01",
+    "query": "lactose-free whole milk",
+    "title": "Lactaid Whole Milk",
+    "details": "half gallon, lactose-free",
+    "fits": 1,
+    "badge": "organic",
+    "p_fit": 0.999739,
+    "yes_no_mass": 1.000261,
+    "top": [
+      {
+        "token": "Yes",
+        "prob": 1.0
+      },
+      {
+        "token": "No",
+        "prob": 0.000261
+      },
+      {
+        "token": "yes",
+        "prob": 5e-06
+      },
+      {
+        "token": "Y",
+        "prob": 1e-06
+      },
+      {
+        "token": " Yes",
+        "prob": 1e-06
+      }
+    ]
+  },
+  "example_lowest_p_fit": {
+    "id": "litter-03",
+    "query": "unscented cat litter",
+    "title": "Fresh Step Clean Paws",
+    "details": "scented, 20 lb",
+    "fits": 0,
+    "badge": "substitution",
+    "p_fit": 6.6e-05,
+    "yes_no_mass": 1.000066,
+    "top": [
+      {
+        "token": "No",
+        "prob": 1.0
+      },
+      {
+        "token": "Yes",
+        "prob": 6.6e-05
+      },
+      {
+        "token": "no",
+        "prob": 1e-06
+      },
+      {
+        "token": "NO",
+        "prob": 1e-06
+      },
+      {
+        "token": "N",
+        "prob": 1e-06
+      }
+    ]
+  },
+  "example_nearest_half": {
+    "id": "broth-06",
+    "query": "chicken broth low sodium",
+    "title": "Campbell's Chicken Noodle Soup",
+    "details": "10.75 oz can",
+    "fits": 0,
+    "badge": "sponsored",
+    "p_fit": 0.5,
+    "yes_no_mass": 1.0,
+    "top": [
+      {
+        "token": "No",
+        "prob": 0.5
+      },
+      {
+        "token": "Yes",
+        "prob": 0.5
+      },
+      {
+        "token": "yes",
+        "prob": 2e-05
+      },
+      {
+        "token": "Y",
+        "prob": 4e-06
+      },
+      {
+        "token": "no",
+        "prob": 3e-06
+      }
+    ]
+  },
+  "organic_holdout": {
+    "n": 18,
+    "accuracy_at_half": 0.833333,
+    "mean_p_fit_when_fits": 0.89645,
+    "mean_p_fit_when_not": 0.86104,
+    "note": "Organic cards are not one of the two decisions. 0.50 here is only a glance, not a tuned cutoff."
+  },
+  "detectors": [
+    {
+      "id": "irrelevant_substitution",
+      "action": "Flag the substitution as irrelevant.",
+      "fp_means": "A substitution that fits the query is flagged.",
+      "fn_means": "A substitution that does not fit is shown to the shopper.",
+      "badge": "substitution",
+      "positive_when_fits": false,
+      "fp_cost": 1.0,
+      "fn_cost": 5.0,
+      "n_tune": 73,
+      "n_holdout": 48,
+      "holdout_positives": 31,
+      "holdout_positive_rate": 0.645833,
+      "judge": {
+        "threshold": 0.02,
+        "tune": {
+          "cost": 24.0,
+          "metrics": {
+            "tp": 46,
+            "fp": 19,
+            "fn": 1,
+            "tn": 7,
+            "precision": 0.707692,
+            "recall": 0.978723,
+            "f1": 0.821429,
+            "n": 73
+          },
+          "cost_at_half": 70.0,
+          "metrics_at_half": {
+            "tp": 34,
+            "fp": 5,
+            "fn": 13,
+            "tn": 21,
+            "precision": 0.871795,
+            "recall": 0.723404,
+            "f1": 0.790698,
+            "n": 73
+          }
+        },
+        "holdout": {
+          "metrics": {
+            "tp": 29,
+            "fp": 14,
+            "fn": 2,
+            "tn": 3,
+            "precision": 0.674419,
+            "recall": 0.935484,
+            "f1": 0.783784,
+            "n": 48
+          },
+          "cost": 24.0,
+          "metrics_at_half": {
+            "tp": 24,
+            "fp": 2,
+            "fn": 7,
+            "tn": 15,
+            "precision": 0.923077,
+            "recall": 0.774194,
+            "f1": 0.842105,
+            "n": 48
+          },
+          "cost_at_half": 37.0
+        },
+        "holdout_oracle": {
+          "threshold": 0.0,
+          "cost": 17.0,
+          "metrics": {
+            "tp": 31,
+            "fp": 17,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.645833,
+            "recall": 1.0,
+            "f1": 0.78481,
+            "n": 48
+          },
+          "note": "This cutoff was fit on the holdout. Do not cite it as the result."
+        },
+        "flag_all_holdout_cost": 17.0,
+        "flag_none_holdout_cost": 155.0
+      },
+      "baseline": {
+        "threshold": 0.19,
+        "tune": {
+          "cost": 12.0,
+          "metrics": {
+            "tp": 46,
+            "fp": 7,
+            "fn": 1,
+            "tn": 19,
+            "precision": 0.867925,
+            "recall": 0.978723,
+            "f1": 0.92,
+            "n": 73
+          },
+          "cost_at_half": 74.0,
+          "metrics_at_half": {
+            "tp": 33,
+            "fp": 4,
+            "fn": 14,
+            "tn": 22,
+            "precision": 0.891892,
+            "recall": 0.702128,
+            "f1": 0.785714,
+            "n": 73
+          }
+        },
+        "holdout": {
+          "metrics": {
+            "tp": 28,
+            "fp": 1,
+            "fn": 3,
+            "tn": 16,
+            "precision": 0.965517,
+            "recall": 0.903226,
+            "f1": 0.933333,
+            "n": 48
+          },
+          "cost": 16.0,
+          "metrics_at_half": {
+            "tp": 19,
+            "fp": 0,
+            "fn": 12,
+            "tn": 17,
+            "precision": 1.0,
+            "recall": 0.612903,
+            "f1": 0.76,
+            "n": 48
+          },
+          "cost_at_half": 60.0
+        },
+        "holdout_oracle": {
+          "threshold": 0.19,
+          "cost": 16.0,
+          "metrics": {
+            "tp": 28,
+            "fp": 1,
+            "fn": 3,
+            "tn": 16,
+            "precision": 0.965517,
+            "recall": 0.903226,
+            "f1": 0.933333,
+            "n": 48
+          },
+          "note": "This cutoff was fit on the holdout. Do not cite it as the result."
+        },
+        "flag_all_holdout_cost": 17.0,
+        "flag_none_holdout_cost": 155.0
+      },
+      "holdout_errors": {
+        "judge": {
+          "false_positives": [
+            {
+              "id": "dish-soap-02",
+              "query": "dish soap",
+              "title": "Store Brand Dish Soap",
+              "details": "24 oz",
+              "case": "exact",
+              "fits": 1,
+              "label": 0,
+              "score": 0.994068,
+              "p_fit": 0.005932,
+              "note": "Store-brand dish soap."
+            },
+            {
+              "id": "sparkling-02",
+              "query": "lime sparkling water",
+              "title": "Store Brand Lime Sparkling Water",
+              "details": "12 cans",
+              "case": "exact",
+              "fits": 1,
+              "label": 0,
+              "score": 0.5,
+              "p_fit": 0.5,
+              "note": "Store brand. Can count was not requested."
+            },
+            {
+              "id": "toilet-paper-02",
+              "query": "toilet paper 12 double rolls",
+              "title": "Store Brand Toilet Paper",
+              "details": "12 double rolls",
+              "case": "exact",
+              "fits": 1,
+              "label": 0,
+              "score": 0.294347,
+              "p_fit": 0.705653,
+              "note": "Store brand in the requested pack."
+            },
+            {
+              "id": "avocados-02",
+              "query": "hass avocados",
+              "title": "Large Hass Avocados",
+              "details": "4 count",
+              "case": "exact",
+              "fits": 1,
+              "label": 0,
+              "score": 0.269531,
+              "p_fit": 0.730469,
+              "note": "Hass avocados. Count was not fixed beyond the fruit itself."
+            },
+            {
+              "id": "evoo-04",
+              "query": "extra virgin olive oil",
+              "title": "Store Brand Extra Virgin Olive Oil",
+              "details": "17 fl oz",
+              "case": "exact",
+              "fits": 1,
+              "label": 0,
+              "score": 0.202346,
+              "p_fit": 0.797654,
+              "note": "Store-brand extra virgin olive oil."
+            },
+            {
+              "id": "toothpaste-02",
+              "query": "fluoride toothpaste",
+              "title": "Store Brand Fluoride Toothpaste",
+              "details": "4 oz",
+              "case": "exact",
+              "fits": 1,
+              "label": 0,
+              "score": 0.164062,
+              "p_fit": 0.835938,
+              "note": "Store-brand fluoride toothpaste."
+            },
+            {
+              "id": "dog-food-02",
+              "query": "salmon dog food",
+              "title": "Store Brand Salmon Recipe Dog Food",
+              "details": "4 lb",
+              "case": "exact",
+              "fits": 1,
+              "label": 0,
+              "score": 0.132812,
+              "p_fit": 0.867188,
+              "note": "Store-brand salmon dog food."
+            },
+            {
+              "id": "almond-butter-02",
+              "query": "almond butter",
+              "title": "Store Brand Creamy Almond Butter",
+              "details": "16 oz",
+              "case": "exact",
+              "fits": 1,
+              "label": 0,
+              "score": 0.119374,
+              "p_fit": 0.880626,
+              "note": "Store-brand almond butter."
+            }
+          ],
+          "false_negatives": [
+            {
+              "id": "lactose-milk-04",
+              "query": "lactose-free whole milk",
+              "title": "Lactaid 2% Milk",
+              "details": "half gallon, lactose-free",
+              "case": "near_miss",
+              "fits": 0,
+              "label": 1,
+              "score": 0.002811,
+              "p_fit": 0.997189,
+              "note": "Lactose-free, wrong fat."
+            },
+            {
+              "id": "gf-pasta-04",
+              "query": "gluten-free spaghetti",
+              "title": "Barilla Gluten Free Penne",
+              "details": "12 oz",
+              "case": "near_miss",
+              "fits": 0,
+              "label": 1,
+              "score": 0.015865,
+              "p_fit": 0.984135,
+              "note": "Gluten-free, wrong shape."
+            }
+          ]
+        },
+        "baseline": {
+          "false_positives": [
+            {
+              "id": "coffee-02",
+              "query": "medium roast ground coffee",
+              "title": "Store Brand Medium Roast",
+              "details": "ground, 12 oz",
+              "case": "exact",
+              "fits": 1,
+              "label": 0,
+              "score": 0.25,
+              "p_fit": 0.970646,
+              "note": "Ground medium roast."
+            }
+          ],
+          "false_negatives": [
+            {
+              "id": "evoo-05",
+              "query": "extra virgin olive oil",
+              "title": "Pompeian Olive Oil Cooking Spray",
+              "details": "extra virgin, 5 oz can",
+              "case": "near_miss",
+              "fits": 0,
+              "label": 1,
+              "score": 0.0,
+              "p_fit": 0.5625,
+              "note": "A spray can is not the bottled oil the query asks for."
+            },
+            {
+              "id": "organic-gallon-03",
+              "query": "organic whole milk gallon",
+              "title": "Store Brand Organic Whole Milk",
+              "details": "half gallon",
+              "case": "near_miss",
+              "fits": 0,
+              "label": 1,
+              "score": 0.0,
+              "p_fit": 0.407407,
+              "note": "Organic whole milk, wrong size."
+            },
+            {
+              "id": "toothpaste-03",
+              "query": "fluoride toothpaste",
+              "title": "Tom's Fluoride-Free Toothpaste",
+              "details": "4 oz",
+              "case": "near_miss",
+              "fits": 0,
+              "label": 1,
+              "score": 0.0,
+              "p_fit": 0.622309,
+              "note": "Toothpaste without fluoride."
+            }
+          ]
+        }
+      },
+      "holdout_by_case": [
+        {
+          "case": "exact",
+          "n": 14,
+          "positives": 0,
+          "correct": 2
+        },
+        {
+          "case": "extra_ok",
+          "n": 3,
+          "positives": 0,
+          "correct": 1
+        },
+        {
+          "case": "near_miss",
+          "n": 28,
+          "positives": 28,
+          "correct": 26
+        },
+        {
+          "case": "off_topic",
+          "n": 3,
+          "positives": 3,
+          "correct": 3
+        }
+      ]
+    },
+    {
+      "id": "relevant_sponsored",
+      "action": "Keep the sponsored card as a relevant ad.",
+      "fp_means": "An ad that does not fit the query is kept.",
+      "fn_means": "An ad that fits the query is suppressed.",
+      "badge": "sponsored",
+      "positive_when_fits": true,
+      "fp_cost": 4.0,
+      "fn_cost": 1.0,
+      "n_tune": 48,
+      "n_holdout": 33,
+      "holdout_positives": 16,
+      "holdout_positive_rate": 0.484848,
+      "judge": {
+        "threshold": 0.59,
+        "tune": {
+          "cost": 2.0,
+          "metrics": {
+            "tp": 22,
+            "fp": 0,
+            "fn": 2,
+            "tn": 24,
+            "precision": 1.0,
+            "recall": 0.916667,
+            "f1": 0.956522,
+            "n": 48
+          },
+          "cost_at_half": 6.0,
+          "metrics_at_half": {
+            "tp": 22,
+            "fp": 1,
+            "fn": 2,
+            "tn": 23,
+            "precision": 0.956522,
+            "recall": 0.916667,
+            "f1": 0.93617,
+            "n": 48
+          }
+        },
+        "holdout": {
+          "metrics": {
+            "tp": 14,
+            "fp": 3,
+            "fn": 2,
+            "tn": 14,
+            "precision": 0.823529,
+            "recall": 0.875,
+            "f1": 0.848485,
+            "n": 33
+          },
+          "cost": 14.0,
+          "metrics_at_half": {
+            "tp": 15,
+            "fp": 3,
+            "fn": 1,
+            "tn": 14,
+            "precision": 0.833333,
+            "recall": 0.9375,
+            "f1": 0.882353,
+            "n": 33
+          },
+          "cost_at_half": 13.0
+        },
+        "holdout_oracle": {
+          "threshold": 0.88,
+          "cost": 3.0,
+          "metrics": {
+            "tp": 13,
+            "fp": 0,
+            "fn": 3,
+            "tn": 17,
+            "precision": 1.0,
+            "recall": 0.8125,
+            "f1": 0.896552,
+            "n": 33
+          },
+          "note": "This cutoff was fit on the holdout. Do not cite it as the result."
+        },
+        "flag_all_holdout_cost": 68.0,
+        "flag_none_holdout_cost": 16.0
+      },
+      "baseline": {
+        "threshold": 1.0,
+        "tune": {
+          "cost": 9.0,
+          "metrics": {
+            "tp": 15,
+            "fp": 0,
+            "fn": 9,
+            "tn": 24,
+            "precision": 1.0,
+            "recall": 0.625,
+            "f1": 0.769231,
+            "n": 48
+          },
+          "cost_at_half": 32.0,
+          "metrics_at_half": {
+            "tp": 24,
+            "fp": 8,
+            "fn": 0,
+            "tn": 16,
+            "precision": 0.75,
+            "recall": 1.0,
+            "f1": 0.857143,
+            "n": 48
+          }
+        },
+        "holdout": {
+          "metrics": {
+            "tp": 12,
+            "fp": 1,
+            "fn": 4,
+            "tn": 16,
+            "precision": 0.923077,
+            "recall": 0.75,
+            "f1": 0.827586,
+            "n": 33
+          },
+          "cost": 8.0,
+          "metrics_at_half": {
+            "tp": 15,
+            "fp": 5,
+            "fn": 1,
+            "tn": 12,
+            "precision": 0.75,
+            "recall": 0.9375,
+            "f1": 0.833333,
+            "n": 33
+          },
+          "cost_at_half": 21.0
+        },
+        "holdout_oracle": {
+          "threshold": 1.0,
+          "cost": 8.0,
+          "metrics": {
+            "tp": 12,
+            "fp": 1,
+            "fn": 4,
+            "tn": 16,
+            "precision": 0.923077,
+            "recall": 0.75,
+            "f1": 0.827586,
+            "n": 33
+          },
+          "note": "This cutoff was fit on the holdout. Do not cite it as the result."
+        },
+        "flag_all_holdout_cost": 68.0,
+        "flag_none_holdout_cost": 16.0
+      },
+      "holdout_errors": {
+        "judge": {
+          "false_positives": [
+            {
+              "id": "butter-06",
+              "query": "salted butter",
+              "title": "I Can't Believe It's Not Butter",
+              "details": "salted, 15 oz",
+              "case": "off_topic",
+              "fits": 0,
+              "label": 0,
+              "score": 0.851562,
+              "p_fit": 0.851562,
+              "note": "The name says butter. It is a margarine spread."
+            },
+            {
+              "id": "sparkling-06",
+              "query": "lime sparkling water",
+              "title": "Sprite Lemon Lime Soda",
+              "details": "12 cans",
+              "case": "off_topic",
+              "fits": 0,
+              "label": 0,
+              "score": 0.730469,
+              "p_fit": 0.730469,
+              "note": "Soda, not sparkling water."
+            },
+            {
+              "id": "cola-06",
+              "query": "cola 12 pack cans",
+              "title": "Diet Pepsi",
+              "details": "12 pack, 12 fl oz cans",
+              "case": "near_miss",
+              "fits": 0,
+              "label": 0,
+              "score": 0.592593,
+              "p_fit": 0.592593,
+              "note": "Right pack, diet cola."
+            }
+          ],
+          "false_negatives": [
+            {
+              "id": "dish-soap-05",
+              "query": "dish soap",
+              "title": "Mrs. Meyer's Dish Soap",
+              "details": "lemon, 16 oz",
+              "case": "extra_ok",
+              "fits": 1,
+              "label": 1,
+              "score": 0.010994,
+              "p_fit": 0.010994,
+              "note": "Scent was not constrained."
+            },
+            {
+              "id": "butter-05",
+              "query": "salted butter",
+              "title": "Kerrygold Pure Irish Butter",
+              "details": "salted, 8 oz",
+              "case": "exact",
+              "fits": 1,
+              "label": 1,
+              "score": 0.5,
+              "p_fit": 0.5,
+              "note": "Salted butter ad. Size was not requested."
+            }
+          ]
+        },
+        "baseline": {
+          "false_positives": [
+            {
+              "id": "butter-06",
+              "query": "salted butter",
+              "title": "I Can't Believe It's Not Butter",
+              "details": "salted, 15 oz",
+              "case": "off_topic",
+              "fits": 0,
+              "label": 0,
+              "score": 1.0,
+              "p_fit": 0.851562,
+              "note": "The name says butter. It is a margarine spread."
+            }
+          ],
+          "false_negatives": [
+            {
+              "id": "evoo-06",
+              "query": "extra virgin olive oil",
+              "title": "Colavita EVOO",
+              "details": "17 fl oz",
+              "case": "paraphrase",
+              "fits": 1,
+              "label": 1,
+              "score": 0.0,
+              "p_fit": 0.962583,
+              "note": "The rules say EVOO means extra virgin olive oil."
+            },
+            {
+              "id": "coffee-05",
+              "query": "medium roast ground coffee",
+              "title": "Peet's Medium Roast",
+              "details": "ground, 18 oz",
+              "case": "exact",
+              "fits": 1,
+              "label": 1,
+              "score": 0.75,
+              "p_fit": 0.997189,
+              "note": "Ground medium roast ad."
+            },
+            {
+              "id": "cola-05",
+              "query": "cola 12 pack cans",
+              "title": "Pepsi",
+              "details": "12 pack, 12 fl oz cans",
+              "case": "exact",
+              "fits": 1,
+              "label": 1,
+              "score": 0.75,
+              "p_fit": 0.940029,
+              "note": "Brand was not requested."
+            },
+            {
+              "id": "organic-gallon-06",
+              "query": "organic whole milk gallon",
+              "title": "Organic Valley Whole Milk",
+              "details": "128 fl oz",
+              "case": "paraphrase",
+              "fits": 1,
+              "label": 1,
+              "score": 0.75,
+              "p_fit": 0.998073,
+              "note": "The rules say 128 fl oz is one gallon. The card does not say gallon."
+            }
+          ]
+        }
+      },
+      "holdout_by_case": [
+        {
+          "case": "exact",
+          "n": 11,
+          "positives": 11,
+          "correct": 10
+        },
+        {
+          "case": "extra_ok",
+          "n": 3,
+          "positives": 3,
+          "correct": 2
+        },
+        {
+          "case": "paraphrase",
+          "n": 2,
+          "positives": 2,
+          "correct": 2
+        },
+        {
+          "case": "near_miss",
+          "n": 4,
+          "positives": 0,
+          "correct": 3
+        },
+        {
+          "case": "off_topic",
+          "n": 13,
+          "positives": 0,
+          "correct": 11
+        }
+      ]
+    }
+  ]
+}

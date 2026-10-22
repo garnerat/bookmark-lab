@@ -1,0 +1,27 @@
+{
+  "backend": "local",
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+  "dtype": "bfloat16",
+  "prompt_version": "2",
+  "yes_tokens": {
+    "9454": "Yes",
+    "7414": " Yes",
+    "9693": "yes",
+    "9834": " yes",
+    "14004": "YES",
+    "14080": " YES"
+  },
+  "no_tokens": {
+    "2753": "No",
+    "2308": " No",
+    "2152": "no",
+    "902": " no",
+    "8996": "NO",
+    "5664": " NO"
+  },
+  "templated_example": "<|im_start|>system\nYou are a retail search judge. Answer Yes only when the product is the same item the query asks for and every requirement named in the query is met. A different product, or the right product with a missed requirement, is No. Use only the rules and the card. Answer with a single word: Yes or No.<|im_end|>\n<|im_start|>user\nRules:\nA result fits only if it is the same product the query asks for.\n- A nearby product does not fit. Oat milk is not whole milk. Almond milk is not oat milk. Yellow mustard is not Dijon. Jasmine rice is not basmati.\n- If the query names a brand, size, count, flavor, fat level, roast, pack type, gender, shoe size, diaper size, or a dietary word (organic, unsweetened, gluten-free, lactose-free, unsalted, unscented, low sodium), the card must match that word.\n- A different brand is fine when the query names none. An extra detail the query does not mention is fine.\n- Equivalences: 2% milk and reduced fat milk are the same. When the card does not say 1%, 2%, skim, or reduced fat, vitamin D milk means whole milk. 64 fl oz is a half gallon. 128 fl oz is a gallon. EVOO means extra virgin olive oil.\n- Not the same: pure olive oil is not extra virgin. Jelly is not jam, but preserves count as jam. Diet cola is not cola. A mega roll is not a double roll. Dishwasher pods are not dish soap. A cooking spray is not a bottle of oil.\n\nQuery: whole milk\nProduct: Great Value Whole Milk\nDetails: 1 gal\n\nDoes this product fit the query?\nYes or No:<|im_end|>\n<|im_start|>assistant\n",
+  "prompt_tokens_example": 380,
+  "prompt_tokens_max": 397,
+  "dataset_sha256": "adcd2e88511a16ffe06b3cceba7297b7f5cbfb96690c6c898f23cb750820e9b2"
+}
