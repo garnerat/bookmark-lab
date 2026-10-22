@@ -1,0 +1,11 @@
+{
+  "irrelevant_substitution": {
+    "fp": 1,
+    "fn": 5
+  },
+  "relevant_sponsored": {
+    "fp": 4,
+    "fn": 1
+  },
+  "notes": "fp is the cost of a false positive and fn is the cost of a false negative, in the same units. For irrelevant substitutions, a positive prediction means flag the card. Missing a bad swap (fn) is priced higher than flagging a fine swap (fp). For relevant sponsored ads, a positive prediction means keep the ad. Keeping an off-topic ad (fp) is priced higher than dropping a relevant one (fn). Edit the numbers and rerun; scores are reused."
+}

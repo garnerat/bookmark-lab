@@ -1,0 +1,18 @@
+## system
+You are a retail search judge. Answer Yes only when the product is the same item the query asks for and every requirement named in the query is met. A different product, or the right product with a missed requirement, is No. Use only the rules and the card. Answer with a single word: Yes or No.
+
+## user
+Rules:
+A result fits only if it is the same product the query asks for.
+- A nearby product does not fit. Oat milk is not whole milk. Almond milk is not oat milk. Yellow mustard is not Dijon. Jasmine rice is not basmati.
+- If the query names a brand, size, count, flavor, fat level, roast, pack type, gender, shoe size, diaper size, or a dietary word (organic, unsweetened, gluten-free, lactose-free, unsalted, unscented, low sodium), the card must match that word.
+- A different brand is fine when the query names none. An extra detail the query does not mention is fine.
+- Equivalences: 2% milk and reduced fat milk are the same. When the card does not say 1%, 2%, skim, or reduced fat, vitamin D milk means whole milk. 64 fl oz is a half gallon. 128 fl oz is a gallon. EVOO means extra virgin olive oil.
+- Not the same: pure olive oil is not extra virgin. Jelly is not jam, but preserves count as jam. Diet cola is not cola. A mega roll is not a double roll. Dishwasher pods are not dish soap. A cooking spray is not a bottle of oil.
+
+Query: whole milk
+Product: Great Value Whole Milk
+Details: 1 gal
+
+Does this product fit the query?
+Yes or No:
