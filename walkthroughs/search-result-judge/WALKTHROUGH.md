@@ -1,5 +1,7 @@
 # One judge, two decisions on a search page
 
+The [interactive page](./index.html) is the way to read this on a phone. It loads the scored cards and lets you move the cutoffs, the costs, and which score is used. This file is the run-it-yourself version: setup, the command, and the same numbers in a form you can diff.
+
 This is a worked example you can run. It takes the idea from last night's [eval threshold tuner](../../demos/2026-10-21-eval-threshold-tuner/) and puts a real model under it.
 
 Last night's page moves a cutoff across synthetic scores. The idea is from [Hamel Husain's post](https://x.com/HamelHusain/status/2112588257104216294) about the essay [How To Use Decision Models for Evals](https://hamelhusain.substack.com/p/how-to-use-decision-models-for-evals) by Hamel Husain and Antaripa Saha. A judge returns a score from 0 to 1. A cutoff turns that score into a decision. 0.50 is a common default. It is a guess until you price the mistakes.
