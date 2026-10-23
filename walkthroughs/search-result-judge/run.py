@@ -506,6 +506,115 @@ def write_example_prompt(out_dir, row, meta):
         (out_dir / "example_templated_prompt.txt").write_text(templated, encoding="utf-8")
 
 
+# The phone page reads this file. Keyword overlap is computed here, with the
+# same function the report uses, so the page cannot drift from the baseline.
+# The combo band is part of the page, not a third model: obvious keyword
+# scores stand, and the judge is used only in the middle.
+COMBO_LOW = 0.25
+COMBO_HIGH = 0.75
+TEACHING_CARD_IDS = ("lactose-milk-01", "litter-03", "broth-06")
+HIGHLIGHTS = {
+    "lactose-milk-04": (
+        "Notable miss. Lactaid 2% for lactose-free whole milk. The fat is wrong. "
+        "The judge is almost sure it fits, so a flag cutoff of 0.02 lets it through."
+    ),
+    "gf-pasta-04": (
+        "Notable miss. Gluten-free penne for gluten-free spaghetti. The shape is wrong, "
+        "and the judge still says Yes."
+    ),
+    "dish-soap-01": (
+        "Dawn dish soap, an ordinary result that fits. It is not in either tuned decision. "
+        "Every dish-soap card in this run is scored as if it does not fit."
+    ),
+    "dish-soap-02": (
+        "Notable miss. Store-brand dish soap that fits. P(fits) is about 0.006, "
+        "so a flag cutoff of 0.02 calls it a bad swap."
+    ),
+    "dish-soap-03": (
+        "Cascade dishwasher pods. The rules say pods are not dish soap, so this is a bad swap. "
+        "The judge agrees."
+    ),
+    "dish-soap-04": (
+        "Softsoap hand soap. It does not fit, and the judge is sure."
+    ),
+    "dish-soap-05": (
+        "Notable miss. Mrs. Meyer's is a sponsored dish soap that fits. "
+        "P(fits) is about 0.011, so the ad cutoff drops it."
+    ),
+    "dish-soap-06": (
+        "Cascade Platinum pods, a sponsored ad that does not fit. The judge drops it."
+    ),
+}
+
+
+def write_cards(out_dir, rows, meta, score_by_id, fingerprint, costs):
+    """One JSON file the phone page can load. Scores come from the saved run."""
+    cards = []
+    by_id = {}
+    for row in rows:
+        scored = score_by_id[row["id"]]
+        overlap = baseline.fit_score(row["query"], row["title"], row["details"])
+        card = {
+            "id": row["id"],
+            "query_id": row["query_id"],
+            "split": row["split"],
+            "query": row["query"],
+            "badge": row["badge"],
+            "title": row["title"],
+            "details": row["details"],
+            "fits": row["fits"],
+            "case": row["case"],
+            "note": row["note"],
+            "p_fit": scored["p_fit"],
+            "yes_mass": scored["yes_mass"],
+            "no_mass": scored["no_mass"],
+            "overlap": overlap,
+        }
+        if row["id"] in TEACHING_CARD_IDS:
+            card["top"] = scored.get("top", [])[:5]
+        reason = HIGHLIGHTS.get(row["id"])
+        if reason:
+            card["highlight"] = True
+            card["highlight_reason"] = reason
+        cards.append(card)
+        by_id[card["id"]] = card
+
+    evoo = by_id["evoo-06"]
+    if evoo["overlap"] != 0 or abs(evoo["p_fit"] - 0.963) > 0.002:
+        raise SystemExit(
+            f"evoo-06 anchor moved: overlap {evoo['overlap']} p_fit {evoo['p_fit']}"
+        )
+    if by_id["lactose-milk-04"]["p_fit"] <= 0.99:
+        raise SystemExit(f"lactose-milk-04 p_fit is {by_id['lactose-milk-04']['p_fit']}")
+    if by_id["dish-soap-02"]["p_fit"] >= 0.02:
+        raise SystemExit(f"dish-soap-02 p_fit is {by_id['dish-soap-02']['p_fit']}")
+
+    payload = {
+        "source": (
+            "Exported by run.py from the scored run in this folder. "
+            "p_fit is the judge's P(fits). overlap is the keyword baseline. "
+            "Nothing in this file is filled in by hand."
+        ),
+        "model": meta.get("model"),
+        "revision": meta.get("revision"),
+        "dtype": meta.get("dtype"),
+        "prompt_version": meta.get("prompt_version"),
+        "dataset_sha256": fingerprint,
+        "costs": costs,
+        "combo": {
+            "low": COMBO_LOW,
+            "high": COMBO_HIGH,
+            "rule": (
+                "On a decision score, use the keyword score when it is below 0.25 "
+                "or at least 0.75. Use the judge score on the unsure band in between."
+            ),
+        },
+        "cards": cards,
+    }
+    write_json(out_dir / "cards.json", payload)
+    print(f"Wrote cards.json ({len(cards)} cards)")
+
+
 def main():
     args = parse_args()
     rows = load_rows()
@@ -590,6 +699,8 @@ def main():
     write_json(out_dir / "curves.json", curves)
     report_text = render_report(payload)
     (out_dir / "REPORT.txt").write_text(report_text, encoding="utf-8")
+    if not args.limit:
+        write_cards(out_dir, rows, meta, score_by_id, fingerprint, costs)
     print(report_text)
 
 
