@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Split the reading from the planning — Bookmark Lab</title>
+<meta name="description" content="Step through a fictional shop question two ways: one frontier model reads every file, or a cheap reader hands the planner a short summary. Example prices only.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238f3d2b'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">In the browser · Wren &amp; Co.</p>
+    <h1>Split the reading from the planning</h1>
+    <p class="lede">A neighborhood cleaning shop asks which customers have not booked in 90 days. Most of the tokens are the files. Run that task on one frontier model, or hand the files to a cheap reader and let the frontier model see a short summary.</p>
+    <p class="source">The shape is from <a href="https://x.com/undefinedKi/status/2113689331412156666">Yarchi’s post</a> on Shopify’s agent setup: the expensive model talks to the user and plans, reading-heavy jobs go to small models, and the expensive model only gets the condensed result. The 7× speedup and the roughly 90% token cut are Shopify’s reported numbers, via that post. This page does not measure them.</p>
+  </header>
+
+  <section class="notice" aria-label="What this page is">
+    <p><strong>Fictional shop, example prices, no model call.</strong> Wren &amp; Co. and the customers are made up. Token counts are round estimates. The prices and speeds below are knobs for this page, not a quote from Shopify or any model vendor. Nothing is uploaded.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="run-title">
+    <h2 id="run-title">The full run</h2>
+    <p class="caption">These totals cover the whole task at the current ratio. Play, below, walks the same task one step at a time. The colored bar is where the tokens sit. The thin bar under it is example cost, drawn to the same scale across the two setups.</p>
+    <div class="modes" role="group" aria-label="Who reads the files">
+      <button type="button" id="mode-one" aria-pressed="true">One model does it all</button>
+      <button type="button" id="mode-split" aria-pressed="false">Planner + cheap reader</button>
+    </div>
+
+    <div class="metrics" aria-label="Totals for the selected setup">
+      <article class="metric">
+        <span class="metric-k">Frontier tokens</span>
+        <strong id="m-frontier">—</strong>
+        <span class="hint" id="m-frontier-hint"></span>
+      </article>
+      <article class="metric">
+        <span class="metric-k">Reader tokens</span>
+        <strong id="m-reader">—</strong>
+        <span class="hint" id="m-reader-hint"></span>
+      </article>
+      <article class="metric" id="cost-card">
+        <span class="metric-k">Example cost</span>
+        <strong id="m-cost">—</strong>
+        <span class="hint" id="m-cost-hint"></span>
+      </article>
+      <article class="metric">
+        <span class="metric-k">Est. latency</span>
+        <strong id="m-latency">—</strong>
+        <span class="hint" id="m-latency-hint"></span>
+      </article>
+    </div>
+    <p id="compare" class="compare"></p>
+
+    <div id="bars" class="bars"></div>
+    <ul class="legend">
+      <li><i class="swatch seg-fin"></i> Frontier input</li>
+      <li><i class="swatch seg-fout"></i> Frontier output</li>
+      <li><i class="swatch seg-rin"></i> Reader input</li>
+      <li><i class="swatch seg-rout"></i> Reader output</li>
+    </ul>
+  </section>
+
+  <section class="panel" aria-labelledby="ratio-title">
+    <h2 id="ratio-title">Read : write</h2>
+    <label for="ratio">Read <strong id="ratio-label">40</strong> tokens for every 1 written</label>
+    <input id="ratio" type="range" min="1" max="80" step="1" value="40" aria-describedby="ratio-note">
+    <p id="ratio-note" class="hint">Files <strong id="ratio-read">6,000</strong> tokens. The list stays <strong id="ratio-write">150</strong> tokens. The source post says Shopify’s agent reads about 40 tokens for every 1 it writes when it builds a store query. The slider starts there. That 40:1 is their observation, relayed in the post, and this page does not measure it.</p>
+    <p id="crossover" class="hint"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="trace-title">
+    <h2 id="trace-title">Watch one pass</h2>
+    <p class="caption">Ask, plan, read the schema, the customers, and the bookings, then write the list. In the split, the three files move together and only a summary climbs up to the planner. The boxes show full-run totals. The highlight is the step you are on.</p>
+    <div id="steps" class="steps" role="group" aria-label="Trace steps"></div>
+    <div class="pager">
+      <button type="button" id="prev" class="secondary">Previous</button>
+      <button type="button" id="play" aria-pressed="false">Play</button>
+      <button type="button" id="next" class="secondary">Next</button>
+    </div>
+    <p id="step-kicker" class="kicker"></p>
+    <h3 id="step-title" aria-live="polite"></h3>
+    <div id="map" class="map" aria-label="Where the tokens go">
+      <div id="files" class="files"></div>
+      <div id="hop-read" class="hop">
+        <div class="stream" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <p id="hop-read-label" class="hop-label">To the model</p>
+      </div>
+      <div id="reader-col" class="stack">
+        <article id="reader-card" class="model reader">
+          <span class="doc-k">Cheap reader</span>
+          <strong id="reader-count">Idle</strong>
+          <span class="doc-u">Reads each file, returns a note</span>
+        </article>
+        <article id="summary-card" class="model summary">
+          <span class="doc-k">Summary</span>
+          <strong id="summary-count">140 tokens</strong>
+          <span class="doc-u">The only record the planner gets</span>
+        </article>
+      </div>
+      <div id="hop-sum" class="hop">
+        <div class="stream" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <p id="hop-sum-label" class="hop-label">140 tokens</p>
+      </div>
+      <div class="stack">
+        <article id="planner-card" class="model planner">
+          <span id="planner-title" class="doc-k">Frontier model</span>
+          <strong id="planner-count">—</strong>
+          <span id="planner-note" class="doc-u">Reads the files, plans, and writes</span>
+        </article>
+        <div id="hop-write" class="hop hop-inline">
+          <div class="stream" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+          <p id="hop-write-label" class="hop-label">The list</p>
+        </div>
+        <article id="answer-card" class="model answer">
+          <span id="answer-k" class="doc-k">The list</span>
+          <strong id="answer-count">150 tokens</strong>
+          <span class="doc-u">Four customers, with dates</span>
+        </article>
+      </div>
+    </div>
+    <div id="step-body" class="step-body"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="judge-title">
+    <h2 id="judge-title">A judge on the summary</h2>
+    <p class="caption">The cheap read is safe when the note still has what the plan named. This check looks for five fields. It is a stand-in, on one made-up summary.</p>
+    <button type="button" id="drop" class="secondary" aria-pressed="false">Drop last visit and days idle</button>
+    <div id="judge-body" class="judge-body"></div>
+    <p class="hint">The source post describes Shopify’s separate judge, tuned until it agreed with human experts: 37.7, then 74.5, slightly above a frontier model’s 73. Failed conversations are rerun at night and the fixes become training data; 69% of the failures it tried were repaired. Those are their reported figures, via the post. Copying the split on a coding agent can be as small as a cheap subagent that reads files. This page does not train anything.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="price-title">
+    <div class="section-head">
+      <h2 id="price-title">Example prices and speed</h2>
+      <button type="button" id="reset" class="secondary">Reset examples</button>
+    </div>
+    <p class="caption">Round numbers so the bill has something to multiply. Change them. They are not a price list from any vendor. The totals at the top follow along.</p>
+    <div class="prices">
+      <fieldset>
+        <legend>Frontier model</legend>
+        <label>Input, $ / million tokens
+          <input id="f-in" type="number" min="0" step="0.01" value="3" inputmode="decimal" autocomplete="off">
+        </label>
+        <label>Output, $ / million tokens
+          <input id="f-out" type="number" min="0" step="0.01" value="15" inputmode="decimal" autocomplete="off">
+        </label>
+        <label>Tokens / second
+          <input id="f-tps" type="number" min="1" step="1" value="50" inputmode="numeric" autocomplete="off">
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Cheap reader</legend>
+        <label>Input, $ / million tokens
+          <input id="r-in" type="number" min="0" step="0.01" value="0.10" inputmode="decimal" autocomplete="off">
+        </label>
+        <label>Output, $ / million tokens
+          <input id="r-out" type="number" min="0" step="0.01" value="0.40" inputmode="decimal" autocomplete="off">
+        </label>
+        <label>Tokens / second
+          <input id="r-tps" type="number" min="1" step="1" value="200" inputmode="numeric" autocomplete="off">
+        </label>
+      </fieldset>
+    </div>
+  </section>
+
+  <details class="panel">
+    <summary>Show the arithmetic</summary>
+    <div id="formula" class="formula"></div>
+  </details>
+
+  <footer>
+    <p>Source post: <a href="https://x.com/undefinedKi/status/2113689331412156666">https://x.com/undefinedKi/status/2113689331412156666</a></p>
+    <p>The 7× speedup, the roughly 90% token cut, the 40:1 read-to-write observation, the judge agreement of 37.7 then 74.5 against a frontier model’s 73, and the 69% nightly repair rate are Shopify’s reported numbers as relayed in that post. This demo does not measure them.</p>
+    <p>Default prices ($3 and $15 per million tokens for the frontier model, $0.10 and $0.40 for the reader, 50 and 200 tokens per second) are example knobs. They are not a quote from any vendor. Wren &amp; Co., the customers, and the bookings are fictional.</p>
+  </footer>
+</div>
+<noscript><p>This demo needs JavaScript. It still would not send anything anywhere.</p></noscript>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
