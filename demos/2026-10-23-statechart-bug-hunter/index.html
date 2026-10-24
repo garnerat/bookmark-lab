@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statechart bug hunter — Bookmark Lab</title>
+<meta name="description" content="Draw a small booking statechart and search every interleaving with an in-browser model checker. Fictional studio, no upload.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238f3d2b'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">In the browser · Maple Lane Studio</p>
+    <h1>Find the bug in the statechart</h1>
+    <p class="lede">Maple Lane Studio books portrait sittings. Ada can hold a slot, pay a deposit, cancel, or move the day. A card processor and the shop agent run at the same time: one captures the payment, the other confirms it, retries when a reply is missed, and sends a reminder. This page draws that chart and checks every interleaving.</p>
+    <p class="source">The idea is from <a href="https://x.com/poteto/status/2112736749281759566">@poteto’s post</a>: ask an agent to draw a statechart, then use a formal-verification pass in the spirit of TLA+ so you can see the user flow and the bugs a person would actually hit. This is that loop, small enough to step through on a phone.</p>
+  </header>
+
+  <section class="explainer" aria-labelledby="how-title">
+    <h2 id="how-title">The picture and the check</h2>
+    <p><strong>A statechart</strong> is a picture of a workflow: named states, and the events that move between them. When several parts run at once, they sit side by side. Ada, the processor, and the shop agent each have a state, and a real moment of the booking is one state from each. The shop agent is split again into a webhook and a reminder. That inner split is what the parallel box means.</p>
+    <p><strong>The checker</strong> does, on a tiny scale, what a model checker such as TLC does for a TLA+ spec. It starts from the opening state and tries every enabled action, breadth-first, skipping a state it has already seen. That walks every ordering of the actors, including ones you would not think to demo. At each state it tests the invariants by name. The first time one fails, the path back to the start is a shortest counterexample.</p>
+    <p><strong>With a coding agent,</strong> you would ask it to draw this kind of chart from the handlers you have — the route that books, the webhook that retries, the job that sends reminders — and then to write that chart as a TLA+ spec. You run the checker, read the counterexample as a story a customer could hit, and fix the small thing that allowed it: an idempotency key, a guard, a lock. Then you run the check again until it stays quiet. The picture is how you see the flow. The spec is how you know the fix covered the orderings, including the ones a manual test skipped.</p>
+  </section>
+
+  <section class="notice" aria-label="What runs where">
+    <p><strong>Fictional studio, and the search stays in this tab.</strong> Ada and the print order are made up. Nothing is uploaded. There is no API key and no account. The TLA+ below is text to read. The checker that actually runs is the JavaScript in this page.</p>
+  </section>
+
+  <section class="panel controls" aria-label="Example and fix">
+    <div class="examples" id="scenarios" role="group" aria-label="Example"></div>
+    <p id="blurb" class="blurb"></p>
+    <div class="row">
+      <button type="button" id="fix" data-focus="fix" aria-pressed="false">Turn the fix on</button>
+    </div>
+    <p id="fix-note" class="hint"></p>
+  </section>
+
+  <section id="metrics" class="metrics" aria-label="Checker result"></section>
+  <p id="readout" class="readout" role="status"></p>
+  <p id="compare" class="compare"></p>
+
+  <section class="stepper" aria-label="Current step">
+    <p id="step-kicker" class="kicker"></p>
+    <p id="step-say" aria-live="polite"></p>
+    <div class="pager">
+      <button type="button" id="prev" data-focus="prev">Previous</button>
+      <button type="button" id="next" data-focus="next">Next</button>
+    </div>
+    <p id="blocked" class="blocked" hidden></p>
+  </section>
+
+  <section class="panel" aria-labelledby="chart-title">
+    <h2 id="chart-title">Statechart</h2>
+    <p id="legend" class="caption"></p>
+    <div id="chart" class="groups"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="facts-title">
+    <h2 id="facts-title">This step</h2>
+    <div id="facts" class="facts"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="inv-title">
+    <h2 id="inv-title">Invariants</h2>
+    <p class="caption">Each one is tested in every reachable state. Tap a broken invariant to jump to the step where the shortest counterexample fails.</p>
+    <div id="invariants" class="inv-list"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="trace-title">
+    <h2 id="trace-title">Traces</h2>
+    <div class="examples" id="samples" role="group" aria-label="Which trace"></div>
+    <ol id="trace" class="trace"></ol>
+  </section>
+
+  <details class="panel spec-panel">
+    <summary id="spec-summary">TLA+ for the buggy model</summary>
+    <p class="caption">Static text, not executed. It is the same buggy model the checker searches, written as a TLA+ spec. The comment at the bottom is the one-line fix.</p>
+    <pre id="spec"></pre>
+  </details>
+
+  <footer>
+    <p>Source post: <a href="https://x.com/poteto/status/2112736749281759566">https://x.com/poteto/status/2112736749281759566</a></p>
+    <p>Maple Lane Studio, Ada, and the print-order client are fictional. The search is a breadth-first enumeration of explicit states in <a href="./model.js">model.js</a>, in the spirit of TLA+ and TLC. It does not call TLC, a model host, or any network API.</p>
+  </footer>
+</div>
+<noscript><p>This demo needs JavaScript. The checker still would not send anything anywhere.</p></noscript>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
