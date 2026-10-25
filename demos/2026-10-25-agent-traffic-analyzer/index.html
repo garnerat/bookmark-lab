@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Which agents visit your site — Bookmark Lab</title>
+<meta name="description" content="Paste an Apache or Nginx access log. See which visits are AI agents, which are search crawlers, and which pages they wanted. Runs in the browser.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238f3d2b'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">In the browser · nothing is uploaded</p>
+    <h1>Which agents visit your site</h1>
+    <p class="lede">Paste an access log from the shop’s website. This page sorts AI assistants, training crawlers, and search engines, then shows the pages each one kept requesting.</p>
+    <p class="source">The idea is item 2 in <a href="https://x.com/gregisenberg/status/2113721373482987970">Greg Isenberg’s list of startup ideas</a>: Google Analytics for agents, so you can see which agents visit your site and what they want. This is a small local version of that, for one log file.</p>
+  </header>
+
+  <section class="notice" aria-label="What this page is">
+    <p><strong>The sample is fiction.</strong> Queen City Coil is not a real Cincinnati heating-and-cooling company, and the sample log was written for this demo. A file you choose is read on this device. Nothing is uploaded, and there is no account.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="log-title">
+    <h2 id="log-title">The log</h2>
+    <p class="caption">Nginx and Apache call this the combined log: the time is in brackets, and the user agent is the last quoted field. A spreadsheet works too, with columns <code>user_agent</code>, <code>path</code>, and <code>timestamp</code>. If the user agent contains a comma, put quotes around it.</p>
+    <div class="actions">
+      <button type="button" id="sample">Load sample log</button>
+      <button type="button" id="upload" class="secondary">Upload a log</button>
+      <button type="button" id="analyze" class="secondary">Analyze</button>
+    </div>
+    <input id="file" type="file" accept=".log,.txt,.csv,text/plain,text/csv" hidden>
+    <p id="file-note" class="hint" hidden></p>
+    <label class="log-label" for="log">Access log or CSV</label>
+    <textarea id="log" spellcheck="false" placeholder="203.0.113.10 - - [20/Oct/2026:09:14:12 -0400] &quot;GET /pricing HTTP/1.1&quot; 200 14820 &quot;-&quot; &quot;Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot&quot;"></textarea>
+    <p id="stale" class="hint warn" hidden>The text changed. Click Analyze to refresh the breakdown.</p>
+  </section>
+
+  <div id="results" aria-live="polite">
+    <section class="panel empty" id="empty">
+      <h2>The breakdown shows up here</h2>
+      <p class="caption">Load the sample log, or paste your own, then the page will name the agents and the pages they wanted.</p>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="notes-title">
+    <h2 id="notes-title">Notes on the signatures</h2>
+    <p class="caption">The list is the user-agent tokens the vendors document. It is not every crawler on the web. A string that only looks similar is not given a vendor it does not have.</p>
+    <div id="notes"></div>
+  </section>
+</div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
