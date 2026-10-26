@@ -1,0 +1,8 @@
+{
+  "name": "untrusted-input-tracer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test check.js"
+  }
+}
