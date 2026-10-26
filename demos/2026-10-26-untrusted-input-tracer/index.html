@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Follow the input to the sink — Bookmark Lab</title>
+<meta name="description" content="Walk a fictional Cincinnati shop’s booking app through Cloudflare’s security-audit phases: untrusted inputs, sinks, a fix toggle, and the bugs the first pass missed.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238f3d2b'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">In the browser · Oakley Pipe &amp; Air</p>
+    <h1>Follow the input to the sink</h1>
+    <p class="lede">Oakley Pipe &amp; Air is a made-up plumbing and heating shop in Oakley, Cincinnati. This page is their booking server, a handful of short Node files, and the audit a coding agent would run on them.</p>
+    <p class="source">The steps are the six phases in <a href="https://github.com/cloudflare/security-audit-skill">Cloudflare’s security-audit skill</a>. The assignment is <a href="https://x.com/franzbruckhoff/status/2113401002355298410">Franz Bruckhoff’s prompt of the day</a>: trace untrusted input to sinks, check auth, dependencies, and configuration, verify what you find, and keep going after you think you are finished.</p>
+    <details class="prompt" open>
+      <summary>The prompt of the day</summary>
+      <blockquote>
+        <p>Run a full application-wide security audit strictly following the methodology in the <a href="https://github.com/cloudflare/security-audit-skill">security-audit skill</a>.</p>
+        <p>Exhaustively trace all untrusted inputs to execution sinks, inspect all auth/access controls, dependencies, and configurations. Verify your findings. When you think you have found all vulnerabilities: You haven't. Keep investigating.</p>
+        <p>Report vulnerabilities with: (1) severity, (2) exact file/line location, (3) root cause and attack vector, and (4) concrete remediation patches.</p>
+      </blockquote>
+    </details>
+  </header>
+  <section class="notice" aria-label="What this page is">
+    <p><strong>The shop is fiction.</strong> Ada Ruiz, Ben Cho, and the two addresses were written for this demo. Nothing is uploaded. Each fixture compares dummy rows or strings in this tab. It does not start Node, a shell, or a database, and it does not call a live site.</p>
+  </section>
+  <noscript><p>This walkthrough needs JavaScript. The shop files and the fixtures stay in the page.</p></noscript>
+  <div id="app"></div>
+</div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
