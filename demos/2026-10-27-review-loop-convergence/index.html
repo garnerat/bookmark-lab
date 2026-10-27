@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Make the review loop finish — Bookmark Lab</title>
+<meta name="description" content="A toy simulation of an agent author and an agent reviewer looping on one pull request. Round caps, diff-only re-review, and voting. Not the article’s data.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238f3d2b'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Toy simulation · Madisonville Comfort</p>
+    <h1>Make the review loop finish</h1>
+    <p class="lede">Madisonville Comfort is a made-up heating shop in Cincinnati. This pull request adds after-hours booking. An agent wrote the patch. Another agent reviews it, the author answers every comment, and the review runs again.</p>
+    <p class="source">The setup is from <a href="https://x.com/addyosmani/status/2114604912520921136">How the Claude Code team does code review</a> by Addy Osmani, Morgan Westlee Lunt, and Qing Wang. The same essay is on the <a href="https://claude.dev/blog/solving-code-review-at-anthropic/">claude.dev blog</a>. From June to September, merged pull requests to Claude Code more than doubled, and the share that had to be reverted fell by more than 40%.</p>
+  </header>
+
+  <section class="notice" aria-label="What the numbers are">
+    <p><strong>These numbers are a toy.</strong> The coin flips were picked so the failure is easy to see on a phone. They are not measurements of Claude, GitHub, or that team. The 50-round pull request, the figure of about 59%, and the double-the-merges result are from the article. Nothing on this page reproduces those measurements.</p>
+  </section>
+
+  <section class="explainer">
+    <p>The article describes six layers of checks, most of them automatic, with a fast rollback under them. A person’s attention goes to the risky part.</p>
+    <ol class="layers">
+      <li>Verify the work before a pull request exists. Tests, a build, a screenshot, a fresh-context pass.</li>
+      <li class="here"><strong>AI review on the pull request.</strong> Several agents look for bugs. A finding is posted only if enough voters agree it is real. This page is about that loop.</li>
+      <li>A security review that can block the merge.</li>
+      <li>CI that can block: lint, types, tests, build.</li>
+      <li>A person approves. Riskier changes need more people. The risk comes from the change, not from who typed it.</li>
+      <li>A merge queue, feature flags, and a staged rollout. Employees see it before the stable channel does.</li>
+    </ol>
+    <p>Some bugs still get through. Flags and a one-step revert are the last layer.</p>
+    <p>Inside the AI review, the author and the reviewer have to stop. One pull request in the CLI repo went through more than fifty rounds overnight. The author stopped it by hand. It could have kept going. A blame check on what the reviewer kept flagging found that about 59% was code already present on the first pass. The reviewer was mostly finding a few more old notes each round, not new bugs from the latest edit.</p>
+    <p>Their change: cap the full passes at three, then re-review only the new diff. Also name the class of bug so the author fixes every instance, and do not post a finding that was already posted. This toy has switches for the cap, the diff-only follow-up, and the vote. It does not simulate the class-of-bug rule or the “already posted” memory beyond a simple repeat.</p>
+  </section>
+
+  <section class="panel controls" aria-label="Review rules">
+    <h2>Rules for this pull request</h2>
+    <div class="control-grid">
+      <div>
+        <p class="control-label" id="voters-label">Voters</p>
+        <div class="stepper" role="group" aria-labelledby="voters-label">
+          <button type="button" id="voters-dec" aria-label="Fewer voters">−</button>
+          <output id="voters-out">1</output>
+          <button type="button" id="voters-inc" aria-label="More voters">+</button>
+        </div>
+        <p class="hint" id="voters-hint"></p>
+      </div>
+      <div>
+        <p class="control-label" id="threshold-label">Votes required to post a flag</p>
+        <div class="stepper" role="group" aria-labelledby="threshold-label">
+          <button type="button" id="threshold-dec" aria-label="Lower the votes required">−</button>
+          <output id="threshold-out">1</output>
+          <button type="button" id="threshold-inc" aria-label="Raise the votes required">+</button>
+        </div>
+        <p class="hint" id="threshold-hint"></p>
+      </div>
+      <div>
+        <p class="control-label" id="cap-label">Round cap</p>
+        <div class="segment" role="group" aria-labelledby="cap-label">
+          <button type="button" id="cap-off" aria-pressed="true">Off</button>
+          <button type="button" id="cap-3" aria-pressed="false">3</button>
+          <button type="button" id="cap-custom" aria-pressed="false">Custom</button>
+        </div>
+        <div id="cap-custom-wrap" hidden>
+          <label for="cap-custom-n">Full passes before the follow-up rule</label>
+          <input id="cap-custom-n" type="number" min="1" max="12" value="5" inputmode="numeric">
+        </div>
+      </div>
+      <div>
+        <p class="control-label" id="seed-label">Seed</p>
+        <div class="seed-row">
+          <input id="seed" type="number" min="1" max="999999999" value="20261027" inputmode="numeric" aria-labelledby="seed-label">
+          <button type="button" id="shuffle" class="secondary">Shuffle</button>
+        </div>
+        <p class="hint">Same seed and same rules replay the same night. The demo stops at 16 rounds so the timeline fits on a phone.</p>
+      </div>
+    </div>
+    <label class="checkline" for="diff-only">
+      <input id="diff-only" type="checkbox" disabled>
+      <span>After the cap, review only lines the author just changed</span>
+    </label>
+    <p class="hint" id="diff-hint"></p>
+  </section>
+
+  <p id="live" class="sr" aria-live="polite"></p>
+
+  <section aria-label="This run">
+    <h2>This run</h2>
+    <p id="outcome" class="banner" role="status"></p>
+    <div class="metrics" id="metrics"></div>
+  </section>
+
+  <section class="panel" aria-label="Rounds">
+    <div class="section-head">
+      <h2>Rounds</h2>
+      <p class="hint" id="round-count"></p>
+    </div>
+    <div class="legend" aria-hidden="true">
+      <span><i class="swatch real"></i> Real bug</span>
+      <span><i class="swatch fp"></i> False alarm, new line</span>
+      <span><i class="swatch old"></i> False alarm, untouched line</span>
+      <span><i class="swatch clean"></i> Clean</span>
+    </div>
+    <div class="round-list" id="rounds" role="list"></div>
+  </section>
+
+  <section class="panel" aria-label="Selected round">
+    <h2 id="round-title">Round</h2>
+    <p id="round-explain"></p>
+    <div class="split">
+      <div>
+        <h3>Flags posted</h3>
+        <div id="flags"></div>
+        <h3>What the author did</h3>
+        <div id="edits"></div>
+      </div>
+      <div>
+        <h3>Pull request 418 · after-hours on-call</h3>
+        <p class="hint">Highlighted lines are what this round posted. A line marked “new” was changed since the previous round. The shop, the techs, and the phone numbers are fiction.</p>
+        <div class="files" id="files"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Many pull requests">
+    <h2>Two hundred pull requests</h2>
+    <p>One seed is a story. Two hundred seeds, shared across four rule sets, show which rule actually finishes. Your current rules are included when they differ from those four.</p>
+    <button type="button" id="trials">Run 200 trials</button>
+    <p id="trial-reading" class="reading" hidden></p>
+    <div id="trial-cards" class="trial-cards"></div>
+  </section>
+
+  <details class="box">
+    <summary>How this toy decides</summary>
+    <div id="model"></div>
+  </details>
+
+  <footer>
+    <p>Bookmark Lab. Madisonville Comfort, Ada, and Ben are fiction. The simulation runs in this tab. It does not call a model, a reviewer, or a network.</p>
+    <p>Source: <a href="https://x.com/addyosmani/status/2114604912520921136">Addy Osmani on X</a> · <a href="https://claude.dev/blog/solving-code-review-at-anthropic/">claude.dev blog</a></p>
+  </footer>
+</div>
+<div class="dock">
+  <button type="button" id="prev" class="secondary">Back</button>
+  <button type="button" id="play">Play</button>
+  <button type="button" id="next" class="secondary">Next</button>
+</div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
