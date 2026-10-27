@@ -1,0 +1,8 @@
+{
+  "name": "review-loop-convergence",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test check.js"
+  }
+}
