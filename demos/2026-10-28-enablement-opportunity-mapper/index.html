@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rank the work they would actually adopt — Bookmark Lab</title>
+<meta name="description" content="Step through fictional enablement sessions at a Cincinnati HVAC shop. Rank AI work by adopted hours, not raw hours.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238f3d2b'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Fictional week · Mill Creek Mechanical</p>
+    <h1>Rank the work they would actually adopt</h1>
+    <p class="lede">You are the facilitator. Mill Creek Mechanical is a fictional 14-person HVAC and plumbing shop in Cincinnati. Step through the kickoff and each department. Every session ends with tasks people would hand to AI tomorrow. The map scores those tasks by adopted hours, not by the raw number.</p>
+    <p class="source">The idea is from Luke Pierce’s article “<a href="https://x.com/lukepierceops/status/2115189554785452224">AI Audits Are Dead. Sell This Instead</a>,” which <a href="https://x.com/lukepierceops/status/2115245000351154480">this bookmarked post</a> points at. This page is a made-up example of that framing. It is not a pitch for a program, and it is not that article’s clients.</p>
+  </header>
+
+  <section class="notice" aria-label="Example data">
+    <p><strong>All names, hours, and notes are fictional example data.</strong> Mill Creek Mechanical is not a real company. Jobline is not a real product. Nothing is uploaded, and the page does not call a model.</p>
+    <noscript><p>This page needs JavaScript to step the sessions. The comparison further down is still readable. The script stays in this tab.</p></noscript>
+  </section>
+
+  <p id="live" class="sr" aria-live="polite"></p>
+  <div id="session-root"></div>
+  <div id="map-root"></div>
+  <div id="notes-root"></div>
+
+  <section class="compare" aria-label="Audit-first and enablement-first">
+    <h2>What the owner is actually buying</h2>
+    <div class="compare-grid">
+      <article>
+        <h3>Audit-first</h3>
+        <dl>
+          <dt>Paid for up front</dt>
+          <dd>A standalone audit. The document is the product.</dd>
+          <dt>What week one feels like</dt>
+          <dd>Questions, a tool inventory, and a wait for the writeup.</dd>
+          <dt>What gets gathered</dt>
+          <dd>Process steps and hours, often as a manager remembers them.</dd>
+          <dt>What usually gets missed</dt>
+          <dd>Who is curious and who is resistant, and which workflows people would actually adopt. High hours get treated as high value.</dd>
+          <dt>What they leave with</dt>
+          <dd>The audit. A build is a second sale, with hope that people will change how they work.</dd>
+        </dl>
+      </article>
+      <article class="enable">
+        <h3>Enablement-first</h3>
+        <dl>
+          <dt>Paid for up front</dt>
+          <dd>A leadership kickoff, then a hands-on session with each department.</dd>
+          <dt>What week one feels like</dt>
+          <dd>People in the room, trying a draft on a real task of theirs before the hour is over.</dd>
+          <dt>What gets gathered</dt>
+          <dd>At the end of every session, each person lists tasks they would hand to AI tomorrow, with hours and how often. The facilitator notes curious, mixed, or resistant, and which workflows they would adopt a tool for.</dd>
+          <dt>What usually gets missed</dt>
+          <dd>Less of the adoption signal. That signal is the rank. Discovery is a side effect of the training, not a separate phase.</dd>
+          <dt>What they leave with</dt>
+          <dd>The opportunity map, walked through live, then a build proposal that already includes monthly enablement. Adoption is treated as the predictor of whether a build gets used.</dd>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel" id="proposal" aria-label="Proposal">
+    <h2>Opportunity map and build proposal</h2>
+    <p>Plain text, from the sessions you have opened and any edits you made. It names the top builds and keeps a monthly enablement session in each one.</p>
+    <textarea id="proposal-text" readonly aria-label="Opportunity map and build proposal"></textarea>
+    <div class="form-actions">
+      <button type="button" id="copy">Copy proposal</button>
+    </div>
+    <p id="copy-note" class="hint" role="status"></p>
+  </section>
+
+  <datalist id="freqs">
+    <option value="Many times a day"></option>
+    <option value="Every job"></option>
+    <option value="Several a day"></option>
+    <option value="Every weekday"></option>
+    <option value="A few nights a week"></option>
+    <option value="Every Monday"></option>
+    <option value="Monday mornings"></option>
+    <option value="On quotes and price changes"></option>
+    <option value="Weekly"></option>
+  </datalist>
+
+  <footer>
+    <p>Bookmark Lab. Mill Creek Mechanical, the 14 staff, Jobline, and the hours are fiction. The scoring runs in this tab. It does not call a model or a network.</p>
+    <p>Source: <a href="https://x.com/lukepierceops/status/2115245000351154480">bookmarked post</a> · <a href="https://x.com/lukepierceops/status/2115189554785452224">AI Audits Are Dead. Sell This Instead</a></p>
+  </footer>
+</div>
+<div class="dock">
+  <button type="button" id="prev" class="secondary">Back</button>
+  <button type="button" id="next">Next session</button>
+</div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
