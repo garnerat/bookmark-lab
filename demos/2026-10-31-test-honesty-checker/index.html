@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Is the agent's test suite honest? — Bookmark Lab</title>
+<meta name="description" content="An AI-written test suite covers every line of a sample HVAC quote calculator and still misses one-character bugs. Add one stronger test at a time.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238f3d2b'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Fictional sample · Linwood Comfort</p>
+    <h1>Is the agent's test suite honest?</h1>
+    <p class="lede">An agent wrote a quote calculator for Linwood Comfort, a made-up heating-and-cooling shop on the east side of Cincinnati, and the AI-written tests that ship with it. Every line runs. The asserts mostly check that a number came back.</p>
+    <p class="source">The routine is from <a href="https://x.com/unclebobmartin/status/2114388856976069095">Uncle Bob Martin’s post on ub-mode</a> and the <a href="https://github.com/unclebob/ub-mode">ub-mode repo</a>. The checkers it names are <a href="https://github.com/unclebob/crapper">Crapper</a>, <a href="https://github.com/unclebob/dryer">Dryer</a>, and <a href="https://github.com/unclebob/mutator">Mutator</a>.</p>
+  </header>
+
+  <section class="explainer" aria-label="What ub-mode asks">
+    <h2>What ub-mode asks an agent to do</h2>
+    <p>ub-mode is a short skill file for coding agents. The order is make it work, then make it right. It is a reduced skill, loosely based on poteto-mode, paired with three checker programs. This page does not copy the skill. It runs the honesty check the skill asks for after the code is written.</p>
+    <ol>
+      <li>Get the data shape right before the logic. Then write a failing test, watch it fail for the reason you expect, and make the smallest change that passes.</li>
+      <li>Check the result. Crapper scores each function from cyclomatic complexity and the fraction of that function the tests run. CRAP = complexity² × (1 − coverage)³ + complexity. ub-mode wants each function under 10. Dryer flags code with the same shape at a similarity of 0.8 or above. Mutator changes one small thing and reruns the tests.</li>
+      <li>An edit that still passes is a survivor. Cover lines that never ran, make the survivors fail, and delete code nothing needs.</li>
+    </ol>
+    <p>Line coverage on this page is the share of lines a test reaches. At 100%, CRAP equals complexity, so a function can look calm while the assert only checks the type. The mutation score is the share of edits the suite rejects. That is a cheap honesty check on tests an agent wrote for its own code.</p>
+    <p>The buttons add one stronger test at a time, in the spirit of writing the failing test first. The original calculator still passes. Edits that used to survive start to fail. A clean score means these tests notice the edits below. It is not a proof the program is finished, and it is not the Crapper, Dryer, or Mutator tools themselves.</p>
+  </section>
+
+  <section class="notice" aria-label="Example data">
+    <p><strong>Linwood Comfort is fictional.</strong> The rate card is a sample. The AI-written suite is part of that sample. Nothing is uploaded. The calculator and the tests run in this tab. There is no account and no network call.</p>
+    <noscript><p>The note above stands on its own. The scores need JavaScript.</p></noscript>
+  </section>
+
+  <p id="live" class="sr" aria-live="polite"></p>
+  <div id="score"></div>
+
+  <section aria-labelledby="assert-title">
+    <h2 id="assert-title">The assert the agent wrote</h2>
+    <div id="assert-sample"></div>
+    <p class="caption">The other AI-written tests call weekends, the member flag, tax, and a full quote. They check that a number came back.</p>
+  </section>
+
+  <section aria-labelledby="crap-title">
+    <h2 id="crap-title">Crapper, on this file</h2>
+    <p class="caption">CRAP = complexity² × (1 − coverage)³ + complexity. Each function starts at 1. An <code>if</code>, loop, <code>catch</code>, <code>case</code>, <code>&amp;&amp;</code>, <code>||</code>, <code>??</code>, <code>?.</code>, or <code>?:</code> adds one. A line counts when a test reaches it. ub-mode wants each function under 10. These numbers are counted from the file, not filled in by hand.</p>
+    <div id="crap"></div>
+  </section>
+
+  <section aria-labelledby="quote-title">
+    <h2 id="quote-title">A quote from the same file</h2>
+    <p class="caption">The prices come from running the original module. Adding a test does not change them. It changes how many edits still pass.</p>
+    <div id="receipt"></div>
+  </section>
+
+  <section aria-labelledby="add-title">
+    <h2 id="add-title">Add one stronger test at a time</h2>
+    <p>Each test pins a number the old suite never checked. The calculator still passes. Mutants that used to survive start to fail.</p>
+    <div id="suite"></div>
+  </section>
+
+  <section aria-labelledby="edit-title">
+    <h2 id="edit-title">One-character edits</h2>
+    <p class="caption">Each card is the real module with one change: a boundary, a flipped comparison, a plus or minus, a boolean, or a constant nudged by a little. The marked token is the edit. A survivor still passes the suite you have turned on.</p>
+    <div id="mutants"></div>
+  </section>
+
+  <div id="source"></div>
+
+  <footer>
+    <p>Bookmark Lab. Linwood Comfort and the rate card are fiction. The calculator and the tests run in this tab.</p>
+    <p>Source: <a href="https://x.com/unclebobmartin/status/2114388856976069095">ub-mode post</a> · <a href="https://github.com/unclebob/ub-mode">unclebob/ub-mode</a></p>
+  </footer>
+</main>
+<div class="dock" id="dock"></div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
