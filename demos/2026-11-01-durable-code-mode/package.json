@@ -1,0 +1,8 @@
+{
+  "name": "durable-code-mode",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test check.js"
+  }
+}

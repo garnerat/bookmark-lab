@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Code mode that survives a crash — Bookmark Lab</title>
+<meta name="description" content="A phone-sized look at code mode for an agent: one script instead of a tool call per lookup, then a crash, a journal, and a resume.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238f3d2b'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Fictional sample · Linwood Comfort</p>
+    <h1>Code mode that survives a crash</h1>
+    <p class="lede">Linwood Comfort is a made-up heating-and-cooling shop on the east side of Cincinnati. Its agent has to answer one question from the job board. Direct tool calls hand every payload to the model. Code mode keeps that data inside a script. If the script dies halfway, a journal decides what runs again.</p>
+    <p class="source">The idea is from <a href="https://x.com/manojlds/status/2115868615333327059">Code mode that survives a crash</a> by Manoj (<a href="https://x.com/manojlds">@manojlds</a>). The full post is <a href="https://stacktoheap.com/blog/2026/10/26/durable-code-mode-in-pi/">Code Mode That Survives a Crash</a>. <a href="https://x.com/badlogicgames">@badlogicgames</a> shared it <a href="https://x.com/badlogicgames/status/2116082498115657878">here</a>.</p>
+  </header>
+
+  <section class="notice" aria-label="Example data">
+    <p><strong>Linwood Comfort is fictional.</strong> The jobs, crews, and parts prices are a sample. Crew names are dispatcher codes, not people. Nothing is uploaded. The page does not call a model or a network.</p>
+    <p id="board-count">Forty-eight fake jobs are on the board. The matching ones are completed, tagged warranty, and closed in October 2026.</p>
+    <noscript><p>The explanation above stands on its own. The counters and the crash buttons need JavaScript.</p></noscript>
+  </section>
+
+  <section class="explainer" aria-label="Direct calls, code mode, and replay">
+    <h2>Three ways a tool result can come back</h2>
+    <ol>
+      <li><strong>Direct calls.</strong> The model asks for one call. The harness runs it. The full result is written into the model’s context before the next turn. List, then detail, is a chain: each link is another turn, and the raw JSON stays in the conversation.</li>
+      <li><strong>Code mode.</strong> The model writes one script. The script calls <code>list_jobs</code> and <code>get_job</code> as functions in a sandbox. Pages and job details stay in the script. The model sees what the script returns.</li>
+      <li><strong>Durable replay.</strong> A crash throws away the JavaScript stack. The script runs again from the top. Each tool result was saved in a journal before the script saw it, so a finished call returns the saved result instead of running again.</li>
+    </ol>
+    <p>The sandbox is deterministic: a virtual clock, random numbers from a fixed seed, and UTC. A tool marked <strong>safe</strong> may run again if the crash cut it off mid-flight. The default is <strong>unsafe</strong>: that in-flight call becomes an error, because it may have partly run. Resume also errors if the script asks for a different call than the journal, if the sandbox changed, or if the time limit ran out. It does not notice when the data behind a finished call has changed.</p>
+    <p>Running model-written code has its own costs: a sandbox, a person approving a call in the middle of a script, work that fails halfway, and a restart that has to decide what already ran.</p>
+  </section>
+
+  <section aria-labelledby="ask-title">
+    <h2 id="ask-title">The question</h2>
+    <blockquote>Total callbacks and parts cost per technician for completed jobs tagged warranty last month.</blockquote>
+    <p class="caption">Last month in this sample is October 2026. The board calls technicians by crew code: Oak, Maple, Birch, and Cedar. The tools are <code>list_jobs(page)</code> and <code>get_job(id)</code>. A page holds 12 jobs and does not include callbacks, parts, or notes. Those are on the detail.</p>
+  </section>
+
+  <section aria-labelledby="compare-title">
+    <h2 id="compare-title">Direct calls and code mode</h2>
+    <p>Watch the same lookups both ways. The running counters are model turns, and the bytes of tool output that enter the model. They are computed from this page’s jobs.</p>
+    <div id="compare"></div>
+    <aside class="cite">
+      <h3>The author’s small Pi experiment</h3>
+      <p>Those counters are not the figures below. Manoj ran one task a handful of times in the Pi coding agent and said it is not a benchmark. Tool output reaching the model dropped from 26,820 bytes to 4,374. The cost Pi logged dropped from $0.037 to $0.021. OpenCode on the same task still returned the full list to the model. With only two tools, the code-mode tool also made the first prompt larger. This page does not reproduce that run.</p>
+    </aside>
+  </section>
+
+  <section aria-labelledby="crash-title">
+    <h2 id="crash-title">Crash the script, then resume</h2>
+    <p>The journal lists every call. A result is saved before the script sees it. Crash now kills the script while a call is in flight. Resume reruns the script from the start against that journal.</p>
+    <div id="replay"></div>
+  </section>
+
+  <section aria-labelledby="book-title">
+    <h2 id="book-title">A side effect stays unsafe</h2>
+    <p><code>book_followup_visit</code> books a warranty review. It is separate from the crash above. The call is in flight, the server may already have booked the visit, and the script never saw the result.</p>
+    <p>Leave the tool <strong>unsafe</strong> so a crash does not fire it again. Still send an idempotency key. The interrupted call may have landed, and a later retry has to find that visit instead of booking a second one. Marking it safe replays the call automatically, which is the wrong place for a side effect.</p>
+    <div id="booking"></div>
+  </section>
+
+  <aside class="takeaway" aria-label="When to use code mode">
+    <h2>When to use it</h2>
+    <p><strong>In the script:</strong> bounded reads, and the filtering and counting that follow. A safe replay policy fits those reads. A crash costs at most one repeated lookup.</p>
+    <p><strong>Outside the script:</strong> long waits, approvals, and side effects. The model should see those results before it takes another step. A side effect stays unsafe, and it carries an idempotency key.</p>
+  </aside>
+
+  <footer>
+    <p>Bookmark Lab. Linwood Comfort, the crews, and the job board are fiction. The counters run in this tab.</p>
+    <p>Source: <a href="https://x.com/manojlds/status/2115868615333327059">Code mode that survives a crash</a> · <a href="https://stacktoheap.com/blog/2026/10/26/durable-code-mode-in-pi/">full post</a> · shared by <a href="https://x.com/badlogicgames/status/2116082498115657878">@badlogicgames</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
