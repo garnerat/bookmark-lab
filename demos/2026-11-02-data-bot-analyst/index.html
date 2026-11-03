@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A data bot that will not invent a metric — Bookmark Lab</title>
+<meta name="description" content="Ask a fictional Cincinnati lawn company a plain question. Data Bot shows the metric, the query, and the table, or says it does not have that metric.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238f3d2b'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Fictional sample · Redbud Lawn Co.</p>
+    <h1>A data bot that will not invent a metric</h1>
+    <p class="lede">Redbud Lawn Co. is a made-up lawn and landscape company in Oakley. The owner, the marketer, and the crew lead can ask Data Bot a plain question. The bot answers from a short list of metrics, and it shows the query it actually ran.</p>
+    <p class="source">The idea is from <a href="https://x.com/bot/status/2117349540168876334">a post by @bot</a> about a team bot that gives people on-demand access to a data scientist. In that post, product managers investigate usage, marketers measure campaigns, and other teams pin metrics to dashboards.</p>
+  </header>
+
+  <section class="notice" aria-label="Example data">
+    <p><strong>Redbud Lawn Co. is fictional.</strong> Neighborhoods are Cincinnati place names used as labels. Crews are dispatcher codes, not people. The rows are generated in this folder. Nothing is uploaded. The page does not call a model or a network.</p>
+    <p id="counts">The sample counts load with the page.</p>
+    <noscript><p>The explanation above stands on its own. The questions, the charts, and the dashboard need JavaScript.</p></noscript>
+  </section>
+
+  <section class="explainer" aria-labelledby="layer-title">
+    <h2 id="layer-title">What a semantic layer is doing here</h2>
+    <p>A semantic layer is a list of definitions the bot is allowed to compute. Customer, conversion, and revenue are each one definition. Data Bot may use those definitions. It may also say the question is not on the list.</p>
+    <ol>
+      <li><strong>With the layer on,</strong> an answer names the metric, shows the definition, shows the query, runs that query on the sample, and draws the result.</li>
+      <li><strong>With the layer off,</strong> the same words still match a column. The column is a convenient one: every customer-file row, every lead that is not marked lost, every job's gross.</li>
+      <li><strong>Unfamiliar questions</strong> get a refusal. There is no profit column, so a question about margin does not receive an invented margin.</li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="words-title">
+    <h2 id="words-title">Same words, two numbers</h2>
+    <p>Today on this page is November 2, 2026. Last quarter is July 1 through September 30. The three words below are the ones that drift. The toggle is what Data Bot will use for the next question.</p>
+    <div class="segment" role="group" aria-label="Semantic layer">
+      <button type="button" data-mode="defined" aria-pressed="true">With semantic layer</button>
+      <button type="button" data-mode="loose" aria-pressed="false">No semantic layer</button>
+    </div>
+    <p class="hint">New questions use this setting. An answer keeps the setting it was asked with.</p>
+    <div id="compare"></div>
+  </section>
+
+  <section aria-labelledby="ask-title">
+    <h2 id="ask-title">Ask Data Bot</h2>
+    <div id="chips"></div>
+    <form id="ask-form" class="ask-form">
+      <label for="question">Or type a question</label>
+      <input id="question" name="question" type="text" maxlength="240" autocomplete="off" enterkeyhint="send" placeholder="Which campaign was cheapest?">
+      <button type="submit">Ask</button>
+    </form>
+    <div id="thread" class="thread"></div>
+  </section>
+
+  <section aria-labelledby="dash-title">
+    <h2 id="dash-title">Dashboard <span id="dash-count" class="dash-count"></span></h2>
+    <p class="hint">Pin an answer and it stays here after a reload. Pins live in this browser only.</p>
+    <div id="dashboard"></div>
+  </section>
+
+  <section aria-labelledby="metrics-title">
+    <h2 id="metrics-title">The metric list</h2>
+    <p>These definitions are the semantic layer. An answer repeats the ones it used, so you can check the number against the sentence.</p>
+    <div id="catalog"></div>
+  </section>
+
+  <section class="takeaway" aria-labelledby="why-title">
+    <h2 id="why-title">Why this matters</h2>
+    <p>A bot that acts as a data scientist is only as honest as the definitions it is allowed to use. In the post, product managers ask about usage, marketers ask about campaigns, and other teams pin numbers to a dashboard. Those jobs share words. They do not share a column.</p>
+    <p>At a lawn company the same thing happens in a smaller file. The owner says revenue and means cash after discounts on finished work. A loose reading adds the gross on jobs that were cancelled. The marketer says conversion and means a finished job. A loose reading counts a quote. The crew lead says utilization and means hours worked against the schedule that crew actually had.</p>
+    <p>The layer does not make the company smarter. It makes the number checkable. If the question is off the list, the honest reply is that there is no metric, and the dashboard does not get a card.</p>
+  </section>
+
+  <section aria-labelledby="try-title">
+    <h2 id="try-title">Try it yourself</h2>
+    <ol class="try-list">
+      <li>Leave the semantic layer on. Ask which campaign brought the cheapest booked jobs. Read the metric and the query, then pin the card.</li>
+      <li>Turn the layer off and ask the same question. Cancelled jobs enter the count, and a different campaign looks cheapest.</li>
+      <li>Ask how many customers, both ways. Then ask what revenue by neighborhood was last quarter. The leading neighborhood changes with the definition.</li>
+      <li>Type “what is our profit margin?” Data Bot should refuse. The file has no profit metric, so the reply has no number.</li>
+      <li>Reload the page. The pinned card should still be on the dashboard.</li>
+    </ol>
+    <p class="source">Source: <a href="https://x.com/bot/status/2117349540168876334">@bot on a team data bot</a>.</p>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Redbud Lawn Co., the crews, and the books are fiction. The queries run in this tab.</p>
+    <p>Source: <a href="https://x.com/bot/status/2117349540168876334">Team bot post</a> · <a href="https://x.com/bot">@bot</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./data.js"></script>
+<script src="./metrics.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
