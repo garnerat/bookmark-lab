@@ -1,0 +1,8 @@
+{
+  "name": "bot-token-leak-simulator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test check.js"
+  }
+}

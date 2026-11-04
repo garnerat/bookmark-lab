@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Most of the bot bill is re-reading — Bookmark Lab</title>
+<meta name="description" content="Configure a fictional Cincinnati plumbing company's bots. See how much of a month is re-reading old chat, then turn on a fix.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238f3d2b'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Fictional sample · Mill Creek Plumbing</p>
+    <h1>Most of the bot bill is re-reading</h1>
+    <p class="lede">Mill Creek Plumbing is a made-up shop in Northside, Cincinnati. Two techs, a dispatcher, and the owner. Give it a bot team, run a month, and see how much of the token bill is old chat being read again.</p>
+    <p class="source">The ladder is from a workshop by Lauren Tan, a SpaceXAI engineer, as quoted by <a href="https://x.com/0xg4tsby/status/2115791677105291629">@0xg4tsby</a>: set the codebase up so that even a weak agent can do the job. The related write-up is <a href="https://x.com/m4lkxx/status/2115775972536434946">Grok Bot: 6 Bots, 200+ Agents, a Smaller Bill</a> by @m4lkxx. In that export, about 75% of tokens went to re-reading old chat, and about 1% went to the work.</p>
+  </header>
+
+  <section class="notice" aria-label="Example data">
+    <p><strong>Mill Creek Plumbing is fictional.</strong> The token counts, the prices, and the mistake rates are illustrative example data, not measurements and not a vendor quote. Nothing is uploaded. The page does not call a model or a network.</p>
+    <noscript><p>The explanation above stands on its own. The sliders, the month, and the fix toggles need JavaScript.</p></noscript>
+  </section>
+
+  <section class="explainer" aria-labelledby="ladder-title">
+    <h2 id="ladder-title">Climb the ladder before you add a bot</h2>
+    <blockquote>You spend the tokens to set up a codebase so that even the dumbest agents can do a good job.</blockquote>
+    <p class="caption">Lauren Tan, quoted in the workshop post. The order there is Job, then Rules, then Skills, then Verification, and only then more bots.</p>
+    <ol>
+      <li><strong>Job.</strong> The plumbing work. On this page that is the “new work” tokens.</li>
+      <li><strong>Rules and skills.</strong> Written once, into a short file, then read on each run. Pasting the same instructions into every bot charges them again on every wake.</li>
+      <li><strong>Verification.</strong> One check for the team, also paid once. It lowers the chance a run drops a detail. It does not need another bot per task.</li>
+      <li><strong>Bots.</strong> A few domain owners, plus one ops bot. A bot per task multiplies handoffs, and each handoff is another chance to drop a detail.</li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="team-title">
+    <h2 id="team-title">The team</h2>
+    <p>Start from a preset. Open a bot to change how often it wakes, how much old chat it carries, how big its rules and skills doc is, and how many tokens the new work takes.</p>
+    <div class="segment" role="group" aria-label="Preset team">
+      <button type="button" id="preset-sprawl" aria-pressed="true">One bot per task</button>
+      <button type="button" id="preset-lean" aria-pressed="false">Domain bots + ops</button>
+    </div>
+    <p id="team-note" class="hint"></p>
+    <div id="bots"></div>
+    <button type="button" id="reset" class="secondary">Reset team and fixes</button>
+    <p class="hint">Reset restores the preset and turns the fixes off. The example prices stay where you set them.</p>
+  </section>
+
+  <section aria-labelledby="price-title">
+    <h2 id="price-title">Example prices</h2>
+    <p class="hint">History and rules use the input price. New work uses the second price. Both are editable examples, not a quote.</p>
+    <div class="price-row">
+      <label>Input, $ per million tokens
+        <input id="price-input" type="number" min="0" max="1000" step="0.01" inputmode="decimal" value="3" autocomplete="off">
+      </label>
+      <label>New work, $ per million tokens
+        <input id="price-work" type="number" min="0" max="1000" step="0.01" inputmode="decimal" value="15" autocomplete="off">
+      </label>
+    </div>
+  </section>
+
+  <section aria-labelledby="month-title">
+    <h2 id="month-title">A month of runs</h2>
+    <div id="results"></div>
+  </section>
+
+  <section aria-labelledby="fix-title">
+    <h2 id="fix-title">Fix a leak</h2>
+    <p>Each switch is applied to the team above. The month updates in place. New work is kept: fewer wakes still do the month’s jobs, they just stop re-reading the chat on the extra wakes.</p>
+    <fieldset class="fix-list">
+      <legend class="sr">Leak fixes</legend>
+      <label class="check">
+        <input id="fix-compact" type="checkbox">
+        <span>
+          <strong>Summarize the chat</strong>
+          <span class="check-copy">Each run carries 600 tokens of summary instead of the full thread.</span>
+        </span>
+      </label>
+      <label class="check">
+        <input id="fix-cadence" type="checkbox">
+        <span>
+          <strong>Slow the noisy routines</strong>
+          <span class="check-copy">Any bot waking more than 4 times a day drops to 4. The month’s new work stays.</span>
+        </span>
+      </label>
+      <label class="check">
+        <input id="fix-consolidate" type="checkbox">
+        <span>
+          <strong>Merge overlapping bots</strong>
+          <span class="check-copy">Task bots in the same domain become one bot. One history, one copy of the rules, fewer handoffs.</span>
+        </span>
+      </label>
+      <label class="check">
+        <input id="fix-rules" type="checkbox">
+        <span>
+          <strong>Move instructions into a short rules file</strong>
+          <span class="check-copy">Each run reads 500 tokens. Writing the file costs 4,000 tokens once this month, not once per bot.</span>
+        </span>
+      </label>
+    </fieldset>
+    <div id="fix-report"></div>
+  </section>
+
+  <section aria-labelledby="mistake-title">
+    <h2 id="mistake-title">Where mistakes come from</h2>
+    <p>Adding a bot adds a handoff. A handoff can drop a detail even when every bot did its own run correctly. Rules and a verification check lower the per-run miss once, then every bot uses that rate.</p>
+    <div id="ladder"></div>
+    <label class="check">
+      <input id="fix-verify" type="checkbox">
+      <span>
+        <strong>Verification check</strong>
+        <span class="check-copy" id="verify-copy">Cuts the per-run miss in half, once, for the whole team.</span>
+      </span>
+    </label>
+    <div class="stepper-block">
+      <p class="control-label" id="handoff-label">Extra handoffs beyond this team</p>
+      <div class="stepper" role="group" aria-labelledby="handoff-label">
+        <button type="button" id="handoff-minus" class="secondary" aria-label="Remove an extra handoff">−</button>
+        <b id="handoff-value">0</b>
+        <button type="button" id="handoff-plus" class="secondary" aria-label="Add an extra handoff">+</button>
+      </div>
+      <p class="hint" id="handoff-note"></p>
+    </div>
+    <div id="mistake-report"></div>
+  </section>
+
+  <section class="takeaway" aria-labelledby="why-title">
+    <h2 id="why-title">Why this matters</h2>
+    <p>The workshop’s point is the order. Job, rules, skills, and a check come before a bigger team. People add another bot when the first one fails. That multiplies the mistake, and it multiplies the chat that every new bot re-reads.</p>
+    <p>The write-up’s export is the bill side of the same idea. About 75% of the tokens were old chat, and about 1% were the work. Rules and checks are paid once. Re-reading is paid on every run. The 6-bot setup in that post, and the 200+ agents around it, are a larger team than this shop. The shape of the leak is the same.</p>
+  </section>
+
+  <section aria-labelledby="try-title">
+    <h2 id="try-title">Try it yourself</h2>
+    <ol class="try-list">
+      <li>Export one bot’s usage for a week.</li>
+      <li>Split the tokens into re-reading old chat, reading rules or skills, and new work.</li>
+      <li>Fix one leak. Compact the history, slow a routine that wakes too often, merge two bots that share a job, or move repeated instructions into a short rules file.</li>
+      <li>Compare the same split next week.</li>
+    </ol>
+    <p class="hint">The numbers on this page will not match an export. They are here so the shape of the leak is easy to see.</p>
+    <p class="source">Sources: <a href="https://x.com/0xg4tsby/status/2115791677105291629">Lauren Tan’s workshop, quoted by @0xg4tsby</a> · <a href="https://x.com/m4lkxx/status/2115775972536434946">Grok Bot: 6 Bots, 200+ Agents, a Smaller Bill</a> by @m4lkxx.</p>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Mill Creek Plumbing, the techs, and the token counts are fiction. The month is counted in this tab.</p>
+    <p>Sources: <a href="https://x.com/0xg4tsby/status/2115791677105291629">Workshop post</a> · <a href="https://x.com/m4lkxx/status/2115775972536434946">Smaller bill</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
