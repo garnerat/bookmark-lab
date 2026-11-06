@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grill the idea before you build — Bookmark Lab</title>
+<meta name="description" content="Pick a vague bot idea for a fictional Cincinnati HVAC shop, answer a scripted grill, and compare the build you would have started with the smaller first slice.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231f4e45'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Fictional sample · Oakley Heating &amp; Cooling</p>
+    <h1>Grill the idea before you build</h1>
+    <p class="lede">Oakley Heating &amp; Cooling is a made-up shop in Oakley and Northside, Cincinnati. The owner has a vague sentence about a bot. This page grills that sentence before anything gets built. Shallow is three soft questions. Deep forces the customer, the limit, the success check, the failure, the data, and the handoff.</p>
+    <p class="source">Source: <a href="https://x.com/gregisenberg/status/2117734977312047537">Greg Isenberg’s agent-stack post</a>. He describes running <strong>/grill-me</strong>, the interrogation skill from the mattpocock/skills pattern, so an agent questions an idea before anyone writes a spec or starts building. The order in that post is a voice note, then the grill, then a spec, then the build. This page is the grill only. The next question is chosen here in the browser, from the words you picked and the answers you already gave.</p>
+  </header>
+
+  <section class="notice" aria-label="Example data">
+    <p><strong>Oakley Heating &amp; Cooling is fictional.</strong> A busy week of about 40 tune-ups, an 8-of-10 draft target, and every choice on this page are example data. They are not a real shop’s numbers and not advice for a real company. Nothing is uploaded. The page does not call a model or a network.</p>
+    <noscript><p>The explanation above stands on its own. Picking an idea, answering the grill, and reading the spec need JavaScript.</p></noscript>
+  </section>
+
+  <section class="explainer" aria-labelledby="order-title">
+    <h2 id="order-title">Voice note, grill, spec, then build</h2>
+    <blockquote>Interrogate the idea before anything gets built.</blockquote>
+    <p class="caption">That is the step /grill-me is for in the stack Greg describes. The skill itself comes from the mattpocock/skills pattern he names in the post. Here the “voice note” is a chip or a short sentence, and the interrogation is a fixed question bank.</p>
+    <ol>
+      <li><strong>The sentence.</strong> One vague idea, the way someone would say it out loud.</li>
+      <li><strong>The grill.</strong> One question at a time. Shallow stops at three. Deep keeps going through six checks, and a risky answer can add a seventh or an eighth.</li>
+      <li><strong>The spec.</strong> One paragraph assembled from the answers. It does not invent a fact you did not pick.</li>
+      <li><strong>The build.</strong> Not on this page. The last panel is the smaller slice the grill would start with, set next to the pile a vague sentence usually drags in.</li>
+    </ol>
+  </section>
+
+  <section id="shop" aria-labelledby="shop-title">
+    <h2 id="shop-title">The shop this example uses</h2>
+    <p>The questions assume this setup. If a choice mentions the board, the book, or the page, this is what it means. All of it is made up.</p>
+    <ul class="facts">
+      <li><strong>People.</strong> An owner, a dispatcher, and two techs.</li>
+      <li><strong>How work starts.</strong> Mostly the phone. The website is a list of services, not a scheduler.</li>
+      <li><strong>The schedule.</strong> A paper board in the shop. A bot cannot see it.</li>
+      <li><strong>Records.</strong> A spreadsheet of past jobs, a price-book PDF the owner keeps, and a shared inbox.</li>
+      <li><strong>Reviews and ads.</strong> Reviews live on Google. A Facebook page exists, and ads are occasional.</li>
+      <li><strong>A busy week.</strong> About 40 tune-ups. That count is fictional.</li>
+    </ul>
+  </section>
+
+  <section id="setup" aria-labelledby="idea-title">
+    <h2 id="idea-title">The idea</h2>
+    <p>Pick a vague sentence the owner might say, or type your own. Two hundred characters is the cap, on purpose. If it does not fit, it is still more than one idea.</p>
+    <div class="choices" role="group" aria-label="Preset ideas">
+      <button type="button" data-preset="quote" aria-pressed="false">AI quoting bot for HVAC</button>
+      <button type="button" data-preset="reviews" aria-pressed="false">Agent that texts customers for reviews</button>
+      <button type="button" data-preset="book" aria-pressed="false">Chatbot on the website that books tune-ups</button>
+      <button type="button" data-preset="ads" aria-pressed="false">Bot that writes our Facebook ads</button>
+    </div>
+    <label class="field" for="idea">Or type a short idea</label>
+    <textarea id="idea" maxlength="200" rows="3" placeholder="Example: a bot that turns the tech’s notes into a quote the owner can send."></textarea>
+    <p id="idea-count" class="hint">0 of 200</p>
+    <p id="track-hint" class="hint">Pick a chip or type a sentence. The grill starts from those words.</p>
+
+    <h3 id="depth-title">How hard should the grill push?</h3>
+    <div class="segment" role="group" aria-labelledby="depth-title">
+      <button type="button" data-depth="shallow" aria-pressed="false">Shallow<span>3 soft questions</span></button>
+      <button type="button" data-depth="deep" aria-pressed="true">Deep<span>6 to 8 sharp questions</span></button>
+    </div>
+    <p id="depth-blurb" class="hint">Six to eight sharp questions. Customer, constraint, success, failure, data, and the handoff. A risky answer can add a slice question, a conflict question, or both.</p>
+    <button type="button" id="start" disabled>Start the grill</button>
+  </section>
+
+  <section id="grill" hidden aria-labelledby="q-title">
+    <p id="grill-kicker" class="kicker"></p>
+    <p id="idea-reminder" class="reminder"></p>
+    <p id="progress" class="hint"></p>
+    <p id="theme" class="eyebrow"></p>
+    <h2 id="q-title" tabindex="-1"></h2>
+    <p id="q-help" class="hint"></p>
+    <div id="choices" class="choices" role="group" aria-label="Example answers"></div>
+    <p class="hint">These choices are example answers for the fictional shop. Pick the closest one. The note is optional, and the rules do not interpret it.</p>
+    <label class="field" for="note">Add a short note, if none of the choices fit</label>
+    <textarea id="note" maxlength="140" rows="2" placeholder="Optional. A sentence at most."></textarea>
+    <p id="note-count" class="hint">0 of 140</p>
+    <div class="actions">
+      <button type="button" id="back" class="secondary">Back</button>
+      <button type="button" id="next" disabled>Continue</button>
+    </div>
+    <button type="button" id="reset-grill" class="secondary">Start over</button>
+  </section>
+
+  <section id="report" hidden aria-labelledby="report-title">
+    <h2 id="report-title">What the grill turned up</h2>
+    <p id="report-lead"></p>
+
+    <section aria-labelledby="holes-title">
+      <h3 id="holes-title">Holes found</h3>
+      <p class="hint">Assumptions the answers still leave open, and any places two answers fight. Settled items stay listed so the wider promise cannot sneak back in.</p>
+      <div id="holes"></div>
+    </section>
+
+    <section aria-labelledby="spec-title">
+      <h3 id="spec-title">Tightened one-paragraph spec</h3>
+      <p class="hint">Filled from the answers with sentence templates. If a conflict was settled, the wider sentence is left out. Example numbers stay labeled as examples.</p>
+      <blockquote id="spec"></blockquote>
+    </section>
+
+    <section aria-labelledby="compare-title">
+      <h3 id="compare-title">Build now vs grill first</h3>
+      <p class="hint">The chips on the left are example scope a vague sentence tends to drag in. They are not a vendor quote. The right side is the smaller first slice.</p>
+      <div id="compare" class="compare"></div>
+    </section>
+
+    <details class="more" id="transcript-wrap">
+      <summary>Answers you gave</summary>
+      <ol id="transcript" class="transcript"></ol>
+    </details>
+
+    <div class="actions">
+      <button type="button" id="revise" class="secondary">Change the last answer</button>
+      <button type="button" id="reset-report">Start over</button>
+    </div>
+  </section>
+
+  <section class="takeaway" aria-labelledby="why-title">
+    <h2 id="why-title">Why the grill comes before the build</h2>
+    <p>The vague sentence hides a vendor project. A quoting bot becomes a live price engine. A review text becomes an SMS carrier and a compliance program. A booking chatbot becomes a calendar integration. An ads bot becomes an API that can spend. None of those were in the sentence, and all of them show up if you start building from the sentence alone.</p>
+    <p>The grill’s job is to make the first week smaller than that sentence, and to leave a paragraph a builder can follow: who it is for, what it may not do, how you will know it worked, and who is on the hook when it is wrong.</p>
+  </section>
+
+  <section aria-labelledby="try-title">
+    <h2 id="try-title">Try it yourself</h2>
+    <ol class="try-list">
+      <li>Write the idea in one sentence, the way you would say it out loud.</li>
+      <li>Run the deep questions with the person who does the job, not only the person who wants the bot.</li>
+      <li>Keep the first build inside the slice. If you could not do that slice by hand for a week, it is still too big.</li>
+      <li>Write the real spec after that. Open a vendor account only when the slice needs it.</li>
+    </ol>
+    <p class="hint">The choices on this page will not match your shop. They are here so the shape of a grill is easy to see.</p>
+    <p class="source">Source: <a href="https://x.com/gregisenberg/status/2117734977312047537">Greg Isenberg’s agent-stack post</a>. /grill-me is the interrogation skill from the mattpocock/skills pattern, as that post describes it.</p>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Oakley Heating &amp; Cooling, the staff, the 40 tune-ups, and the answer chips are fiction. The grill is counted in this tab.</p>
+    <p>Source: <a href="https://x.com/gregisenberg/status/2117734977312047537">Agent-stack post</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
