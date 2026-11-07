@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Audit a 40-minute CI wait — Bookmark Lab</title>
+<meta name="description" content="Toggle a fictional Cincinnati HVAC shop’s agent pull request from a 40-minute CI run down toward 2 minutes.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%236e3b2e'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Fictional sample · Oakley Heating &amp; Cooling</p>
+    <h1>Audit a 40-minute CI wait</h1>
+    <p class="lede">Oakley Heating &amp; Cooling is a made-up shop in Oakley, Cincinnati. Its agents push the oakley-ops repo all day. This page is one pull request and the check that pull request waits on. The bar splits every job into waiting, setup, and running.</p>
+    <p class="source">From <a href="https://x.com/owengretzinger/status/2116331367407694118">Owen Gretzinger’s post</a> and his Boardy write-up, <a href="https://x.com/owengretzinger/article/2116291924219060319">How I made our CI 20x faster</a>. A year of agent-written pull requests had been waiting about 40 minutes. After the levers below, a run waited about 2. The figures on this page are a sketch of that shape for a smaller shop repo, not Boardy’s logs.</p>
+  </header>
+
+  <section class="notice" aria-label="Example data">
+    <p><strong>Oakley Heating &amp; Cooling is fictional.</strong> The 40:00 start, the 11:00 runner queue, and every other second are example numbers. Nothing is uploaded. The page does not call a network.</p>
+    <noscript><p>The explanation above stands on its own. The toggles, the shrinking bars, and the updated totals need JavaScript.</p></noscript>
+  </section>
+
+  <section class="explainer" aria-labelledby="split-title">
+    <h2 id="split-title">Split the run before you speed it up</h2>
+    <blockquote>agent: hold a Saturday tune-up slot so two bookings cannot take it</blockquote>
+    <p class="caption">The sample change touches scheduling only. Dispatch and billing are in the repo and, at the start, still in the check.</p>
+    <ol>
+      <li><strong>Waiting.</strong> Time in the runner queue. The slowest job here sits for 11:00 before it gets a machine.</li>
+      <li><strong>Setup.</strong> Checkout and install. Cold when the pull request cache was never seeded from main.</li>
+      <li><strong>Running.</strong> Lint, typecheck, build, and tests, one after another until you turn parallel on.</li>
+    </ol>
+  </section>
+
+  <div class="sticky-total">
+    <span class="sticky-label">This CI run</span>
+    <strong id="sticky-time">40:00</strong>
+    <span class="sticky-until" id="sticky-until">2 runs · 80:00</span>
+  </div>
+
+  <section class="hero" aria-labelledby="run-label">
+    <p class="eyebrow" id="run-label">This CI run</p>
+    <p class="hero-time" id="run-time">40:00</p>
+    <p class="run-parts" id="run-parts">Waiting 23:15 · Setup 3:25 · Running 13:20</p>
+    <p class="caption" id="saved">This is the slow start: about 40 minutes of queue, cold setup, and serial checks.</p>
+    <p class="caption">Agents for this shop push all day. They do not get bored of a red check, so the wait is the bottleneck.</p>
+    <p class="audit" id="audit">Agent audit: the biggest hidden bug was a missing PR cache seed from main, so agents retried cold installs instead of fixing setup.</p>
+  </section>
+
+  <section aria-labelledby="chart-title">
+    <h2 id="chart-title">Where the time sits</h2>
+    <ul class="legend">
+      <li><i class="swatch wait" aria-hidden="true"></i> Waiting</li>
+      <li><i class="swatch setup" aria-hidden="true"></i> Setup</li>
+      <li><i class="swatch run" aria-hidden="true"></i> Running</li>
+    </ul>
+    <div class="panel">
+      <p class="hint" id="mode">Jobs run one after another, so this run is every bar added together.</p>
+      <div class="track" aria-hidden="true"><div class="bar" id="summary-bar"></div></div>
+      <p class="caption">Bar length is this run compared with the 40:00 start. A fix shrinks its slice. The clock above is the critical path.</p>
+    </div>
+    <div class="jobs" id="jobs"></div>
+  </section>
+
+  <section class="rounds" aria-labelledby="rounds-title">
+    <h2 id="rounds-title">The extra red round</h2>
+    <p id="rounds-copy">No pre-push hook: the agent learns about the type error from a red check and pushes again. Until green: 2 CI runs, 80:00.</p>
+    <div class="track miss-track" aria-hidden="true"><div class="bar" id="miss-bar"></div></div>
+    <p class="caption" id="miss-label">The extra red run costs another 40:00.</p>
+  </section>
+
+  <section aria-labelledby="fix-title">
+    <h2 id="fix-title">Apply one fix at a time</h2>
+    <div class="actions">
+      <button type="button" id="all-on">Turn all on</button>
+      <button type="button" id="reset">Start over</button>
+    </div>
+    <div class="toggles" id="toggles" role="group" aria-label="CI fixes">
+      <button type="button" class="toggle" data-flag="runners" aria-pressed="false">
+        <span class="box" aria-hidden="true"></span>
+        <span class="toggle-copy">
+          <span class="toggle-title">Fast runners</span>
+          <span class="toggle-detail">Waiting drops from as high as 11:00 to 8s on every job.</span>
+        </span>
+      </button>
+      <button type="button" class="toggle" data-flag="oxlint" aria-pressed="false">
+        <span class="box" aria-hidden="true"></span>
+        <span class="toggle-copy">
+          <span class="toggle-title">Oxlint instead of ESLint</span>
+          <span class="toggle-detail">Lint running goes from 2:00 to about 5s. Agents do not mind strict rules.</span>
+        </span>
+      </button>
+      <button type="button" class="toggle" data-flag="types" aria-pressed="false">
+        <span class="box" aria-hidden="true"></span>
+        <span class="toggle-copy">
+          <span class="toggle-title">Fast typecheck</span>
+          <span class="toggle-detail">tsc at 70s becomes bun check at about 5s.</span>
+        </span>
+      </button>
+      <button type="button" class="toggle" data-flag="shards" aria-pressed="false">
+        <span class="box" aria-hidden="true"></span>
+        <span class="toggle-copy">
+          <span class="toggle-title">Bigger shards + isolate:false</span>
+          <span class="toggle-detail">The 8:00 test target becomes one 35s shard that keeps the app loaded.</span>
+        </span>
+      </button>
+      <button type="button" class="toggle" data-flag="cache" aria-pressed="false">
+        <span class="box" aria-hidden="true"></span>
+        <span class="toggle-copy">
+          <span class="toggle-title">Seed the dependency cache from main</span>
+          <span class="toggle-detail">Setup goes from a cold install to a warm restore.</span>
+        </span>
+      </button>
+      <button type="button" class="toggle" data-flag="parallel" aria-pressed="false">
+        <span class="box" aria-hidden="true"></span>
+        <span class="toggle-copy">
+          <span class="toggle-title">Run the jobs in parallel</span>
+          <span class="toggle-detail">Lint, typecheck, build, and tests start together. The run is the slowest job.</span>
+        </span>
+      </button>
+      <button type="button" class="toggle" data-flag="affected" aria-pressed="false">
+        <span class="box" aria-hidden="true"></span>
+        <span class="toggle-copy">
+          <span class="toggle-title">Affected-only tests</span>
+          <span class="toggle-detail">nx affected: this PR only touches scheduling. Skip dispatch and billing.</span>
+        </span>
+      </button>
+      <button type="button" class="toggle" data-flag="hook" aria-pressed="false">
+        <span class="box" aria-hidden="true"></span>
+        <span class="toggle-copy">
+          <span class="toggle-title">Pre-push hook</span>
+          <span class="toggle-detail">Catch the type error locally in 9s, so the agent does not spend another red CI round.</span>
+        </span>
+      </button>
+    </div>
+  </section>
+
+  <footer>
+    <p>Owen Gretzinger, head of engineering at Boardy, wrote “How I made our CI 20x faster.” <a href="https://x.com/owengretzinger/status/2116331367407694118">Source post</a>. <a href="https://x.com/owengretzinger/article/2116291924219060319">Read the article</a>.</p>
+  </footer>
+</main>
+<p id="live" class="sr-only" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
