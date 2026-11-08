@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A chat card instead of a wall of text — Bookmark Lab</title>
+<meta name="description" content="Ask a fictional Hyde Park roofing shop a question. See the same answer as plain text or as a JSON spec rendered into a Slack-like, Teams-like, or web card.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238d4328'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Fictional sample · Copper Lantern Roofing</p>
+    <h1>A chat card instead of a wall of text</h1>
+    <p class="lede">Copper Lantern Roofing is a made-up shop in Hyde Park, Cincinnati. The owner asks its agent what is on tomorrow, which of two roof quotes to send, or how leads looked this week. A plain reply is one long paragraph. With a typed catalog, the model writes a JSON spec instead, and json-render turns that spec into a chat card.</p>
+    <p class="source">The idea is from <a href="https://x.com/rauchg/status/2118856239719608353">Guillermo Rauch’s post</a> and the November 6, 2026 Vercel changelog, <a href="https://vercel.com/changelog/json-render-and-chat-sdk-agents">Chat SDK agents can stream generative UI with json-render</a>. One spec posts as Slack Block Kit, a Teams Adaptive Card, or a web card. The docs are <a href="https://json-render.dev/docs/api/chat">@json-render/chat</a>, and the code is in <a href="https://github.com/vercel-labs/json-render">vercel-labs/json-render</a>.</p>
+  </header>
+
+  <section class="notice" aria-label="Example data">
+    <p><strong>Copper Lantern Roofing is fictional.</strong> Hyde Park, Mt. Lookout, Madisonville, and East Walnut Hills are neighborhood labels. Crews are labels, not people. Every dollar, lead, and job time is example data. Nothing is uploaded. This page does not call a model, a network, or an API.</p>
+    <noscript><p>The explanation above stands on its own. The question chips, the streaming spec, and the card need JavaScript.</p></noscript>
+  </section>
+
+  <section class="explainer" aria-labelledby="idea-title">
+    <h2 id="idea-title">One spec, three native cards</h2>
+    <p>The agent is not allowed to invent a layout. It can only emit components from a catalog. json-render checks that JSON and hands a card to the chat adapter. Slack, Teams, and the web each draw the same card in their own format.</p>
+    <ol>
+      <li><strong>Catalog.</strong> The allowed components are Card, Section, Text, Fields, Field, Table, Chart, Divider, Image, Actions, Button, and LinkButton.</li>
+      <li><strong>streamCard.</strong> The card is posted once the root Card exists. Later elements edit that same message, at most once every 500ms.</li>
+      <li><strong>toCard.</strong> Every element’s props are checked against its schema. A bad spec throws CardSpecError. Each problem is one readable issue the model can fix.</li>
+      <li><strong>limits.</strong> Slack turns a second table into a code block. Pass <code>limits</code> and toCard rejects the spec instead of letting the adapter degrade it.</li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="ask-title">
+    <h2 id="ask-title">Ask the owner’s question</h2>
+    <div class="segment" role="group" aria-label="Questions">
+      <button type="button" data-question="schedule" aria-pressed="true">What's on tomorrow?</button>
+      <button type="button" data-question="quotes" aria-pressed="false">Compare the two quotes</button>
+      <button type="button" data-question="leads" aria-pressed="false">How did leads look?</button>
+    </div>
+
+    <p class="group-label" id="present-label">Same answer, two presentations</p>
+    <div class="segment" role="group" aria-labelledby="present-label">
+      <button type="button" data-presentation="text" aria-pressed="false">Plain text</button>
+      <button type="button" data-presentation="card" aria-pressed="true">Generative UI</button>
+    </div>
+
+    <p class="group-label" id="platform-label">Where that spec posts</p>
+    <div class="segment" role="group" aria-labelledby="platform-label">
+      <button type="button" data-platform="slack" aria-pressed="true">Slack-like</button>
+      <button type="button" data-platform="teams" aria-pressed="false">Teams-like</button>
+      <button type="button" data-platform="web" aria-pressed="false">Web card</button>
+    </div>
+    <p class="hint">One spec fans out. The Slack-like card is the one that degrades a second table. Teams-like and the web card keep it.</p>
+  </section>
+
+  <section aria-labelledby="guard-title">
+    <h2 id="guard-title">A bad spec, or a platform cap</h2>
+    <div class="choices" role="group" aria-label="Spec check">
+      <button type="button" class="choice" data-guard="valid" aria-pressed="true">
+        <span class="choice-title">Valid spec</span>
+        <span class="choice-detail">toCard accepts every element in the catalog.</span>
+      </button>
+      <button type="button" class="choice" data-guard="bad" aria-pressed="false">
+        <span class="choice-title">Bad props</span>
+        <span class="choice-detail">CardSpecError lists the issues sent back to the model.</span>
+      </button>
+      <button type="button" class="choice" data-guard="degrade" aria-pressed="false">
+        <span class="choice-title">Second table, no limits</span>
+        <span class="choice-detail">Slack turns that table into a code block. The other platforms do not.</span>
+      </button>
+      <button type="button" class="choice" data-guard="limits" aria-pressed="false">
+        <span class="choice-title">Pass limits</span>
+        <span class="choice-detail">toCard(spec, { limits: { tables: 1 } }) rejects the spec instead.</span>
+      </button>
+    </div>
+    <p class="hint" id="guard-copy">toCard accepts this spec. Every element is in the catalog, and the props match.</p>
+  </section>
+
+  <p class="sticky-status" id="sticky-status">Waiting for the root Card. An empty message is not posted.</p>
+  <div class="meter" aria-hidden="true"><span id="meter"></span></div>
+  <p class="hint" id="motion-note" hidden>Animation is off. Replay the stream if you want each 500ms edit, or leave the finished card up.</p>
+  <div class="actions">
+    <button type="button" id="replay">Replay the stream</button>
+    <button type="button" id="finish">Show the finished card</button>
+  </div>
+
+  <p class="facts" id="facts">Same facts either way: 3 stops, 6.5 crew hours, first arrival 8:00. Example data.</p>
+  <div id="stage"></div>
+  <p class="hint" id="action-note"></p>
+  <p class="hint" id="compare-note">Slack-like is rendering the spec below. Flip the presentation and the facts stay put.</p>
+
+  <section class="spec-panel" aria-labelledby="spec-title">
+    <h2 id="spec-title">The JSON spec</h2>
+    <p class="hint">Simulated model output. Nothing here is a live model. streamCard would post once the root Card exists, then edit at most every 500ms.</p>
+    <pre id="spec" class="spec" aria-label="Streaming JSON spec"></pre>
+    <p class="hint" id="spec-meta">The model has not emitted the root yet.</p>
+  </section>
+
+  <section aria-labelledby="catalog-title">
+    <h2 id="catalog-title">The catalog is the guardrail</h2>
+    <p>These are the standard chat components. If it is not on this list, the agent cannot emit it, and toCard reports an unknown component.</p>
+    <ul class="catalog" id="catalog">
+      <li data-type="Card"><strong>Card</strong> Root of the message. It needs a title, an image, or a child.</li>
+      <li data-type="Section"><strong>Section</strong> Groups related elements inside the card.</li>
+      <li data-type="Text"><strong>Text</strong> A markdown paragraph. Styles are plain, bold, and muted.</li>
+      <li data-type="Fields"><strong>Fields</strong> A grid of label and value pairs. Children are Field elements.</li>
+      <li data-type="Field"><strong>Field</strong> One label and one value, inside Fields.</li>
+      <li data-type="Table"><strong>Table</strong> Headers and rows. Slack turns a second table into a code block.</li>
+      <li data-type="Chart"><strong>Chart</strong> A pie, bar, line, or area chart.</li>
+      <li data-type="Divider"><strong>Divider</strong> A line between groups.</li>
+      <li data-type="Image"><strong>Image</strong> An image from an https URL, plus alt text.</li>
+      <li data-type="Actions"><strong>Actions</strong> A row of Button and LinkButton elements.</li>
+      <li data-type="Button"><strong>Button</strong> An action the bot handles. It needs an id and a label.</li>
+      <li data-type="LinkButton"><strong>LinkButton</strong> A button that opens a URL.</li>
+    </ul>
+    <p class="hint">Not in the standard chat catalog, even if a model reaches for them:</p>
+    <ul class="banned">
+      <li data-banned="Callout"><strong>Callout</strong> Not allowed. A bad spec that emits it gets an issue back.</li>
+      <li data-banned="Metric"><strong>Metric</strong> Not allowed. Use Field inside Fields.</li>
+      <li data-banned="Stack"><strong>Stack</strong> Not allowed. Use Section.</li>
+    </ul>
+  </section>
+
+  <section class="takeaway" aria-labelledby="why-title">
+    <h2 id="why-title">Why this matters</h2>
+    <p>A shop owner asking about tomorrow does not need a paragraph to scan. The same three stops, the same 6.5 hours, and the same first arrival fit in fields, a chart, and a table, with a button for the next step. The catalog is what keeps that card from becoming whatever markup the model felt like writing.</p>
+    <p>The stream is the other half. The message goes up when the root Card exists, then fills in about every 500ms, instead of waiting for a finished essay. If the model emits a radar chart, a Callout, or a second table past the cap, toCard does not guess. It returns the issues, and the model tries again.</p>
+  </section>
+
+  <section aria-labelledby="try-title">
+    <h2 id="try-title">Try it</h2>
+    <ol class="try-list">
+      <li>Leave the card on. Watch the Sunday board post when the title arrives, then fill in every 500ms. Replay if it already finished.</li>
+      <li>Switch to plain text. The facts stay. The reply becomes one paragraph.</li>
+      <li>Open “Compare the two quotes” and stay on Slack-like. The metal table becomes a code block. Switch to Teams-like, then the web card. Both tables stay tables.</li>
+      <li>Choose “Pass limits”. The partial card still appears, then CardSpecError says at most 1 Table per message.</li>
+      <li>Choose “Bad props”. The finished stream lists the issues, including the Callout that is not in the catalog.</li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Copper Lantern Roofing, the crews, the quotes, and the leads are fiction. The spec is checked in this tab.</p>
+    <p><a href="https://x.com/rauchg/status/2118856239719608353">Guillermo Rauch’s post</a> · <a href="https://vercel.com/changelog/json-render-and-chat-sdk-agents">Changelog, Nov 6, 2026</a> · <a href="https://json-render.dev/docs/api/chat">Chat API</a> · <a href="https://github.com/vercel-labs/json-render">json-render</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./engine.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
