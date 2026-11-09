@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Naive scan vs a 6-phase audit — Bookmark Lab</title>
+<meta name="description" content="Toggle a single-pass scan against a six-phase audit on a fictional Cincinnati home-services booking app. Simulated verdicts only.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231f4f48'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Simulation · Hilltop Homebook</p>
+    <h1>Naive scan vs a 6-phase audit</h1>
+    <p class="lede">Hilltop Homebook is a made-up Cincinnati shop app for booking heating, plumbing, and electrical visits. Five short files are the whole codebase. A single-pass scan flags every one of them. A six-phase audit challenges each candidate, then files a report.</p>
+    <p class="source">The phases are from <a href="https://x.com/CloudflareDev/status/2118013149538390253">Cloudflare Developers’ post</a> about the open-source <a href="https://github.com/cloudflare/security-audit-skill">security-audit skill</a>. The skill’s names for the same six phases are reconnaissance, coverage-led hunting, candidate validation, structured output, independent record verification, and target-neutral reporting.</p>
+  </header>
+
+  <section class="notice" aria-label="This page is a simulation">
+    <p><strong>Simulation. This is not a scanner.</strong> Hilltop Homebook, the five files, the scan, and every verdict are canned examples in this tab. The token in the third file is a placeholder written for the demo. Nothing is uploaded. This page does not read a repository, run the snippets, call a model, or use a network.</p>
+    <noscript><p>JavaScript draws the toggle and the phase stepper. The canned outcome is on the page: the scan flags 5, and the audit confirms 2, rejects 2, and leaves 1 as needs validation.</p></noscript>
+  </section>
+
+  <section aria-labelledby="read-title">
+    <h2 id="read-title">Same five files, two reads</h2>
+    <div class="segment" role="group" aria-label="How to read the five files">
+      <button type="button" data-mode="scan" aria-pressed="true">Single-pass scan</button>
+      <button type="button" data-mode="audit" aria-pressed="false">6-phase audit</button>
+    </div>
+    <p class="hint" id="mode-hint">Every match is labeled High. This pass does not try to disprove a candidate.</p>
+    <div class="board" id="board"></div>
+    <div id="scan"></div>
+    <div id="audit" hidden>
+      <nav aria-label="Audit phases">
+        <ol class="stepper" id="stepper"></ol>
+      </nav>
+      <div id="phase"></div>
+      <div class="nav">
+        <button type="button" id="prev" data-nav="prev">Previous phase</button>
+        <button type="button" id="next" data-nav="next">Next phase</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="explainer" aria-labelledby="phases-title">
+    <h2 id="phases-title">The six phases</h2>
+    <ol>
+      <li><strong>Map the codebase.</strong> Architecture, the trust boundary, and the input surfaces.</li>
+      <li><strong>Hunt for vulnerabilities.</strong> One hunter per file. Candidates only.</li>
+      <li><strong>Challenge each candidate.</strong> A fresh pass tries to disprove it.</li>
+      <li><strong>Record the findings.</strong> Confirmed, rejected, or needs validation.</li>
+      <li><strong>Verify the findings.</strong> Another pass checks each record against the source.</li>
+      <li><strong>Report what's confirmed, rejected, or still needs validation.</strong></li>
+    </ol>
+  </section>
+
+  <section class="takeaway" aria-labelledby="steal-title">
+    <h2 id="steal-title">What to steal for your own agent workflow</h2>
+    <ol>
+      <li><strong>Map the trust boundary before you pattern-match.</strong> Write down who can call each route, and which values are untrusted, before a rule flags a line.</li>
+      <li><strong>Give every candidate to a fresh pass whose job is to disprove it.</strong> The pass that found it does not grade it.</li>
+      <li><strong>Record three verdicts.</strong> Confirmed has a source trace and a result you can point at. Rejected keeps the disproof. Needs validation names the one open fact and has no severity.</li>
+      <li><strong>Derive the report from those records.</strong> The first list of hits is not the report. A rejected false positive stays on the record.</li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Hilltop Homebook is fiction. The snippets and verdicts are a simulation, not a scan of a real app.</p>
+    <p><a href="https://x.com/CloudflareDev/status/2118013149538390253">Cloudflare Developers’ post</a> · <a href="https://github.com/cloudflare/security-audit-skill">cloudflare/security-audit-skill</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
