@@ -1,0 +1,8 @@
+{
+  "name": "socratic-tutor-skill-map",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test check.js"
+  }
+}
