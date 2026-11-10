@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tutor vs. chatbot — Bookmark Lab</title>
+<meta name="description" content="A phone-friendly simulation of a Socratic tutor versus a chatbot lecture, on a fictional Cincinnati HVAC quote. Offline, scripted, no model calls.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231f4f48'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Simulation · Clifton Air Co.</p>
+    <h1>Tutor vs. chatbot</h1>
+    <p class="lede">Clifton Air Co. is a made-up heating shop in Clifton, Cincinnati. A customer wants a quote. One side dumps a lecture. The other side teaches the way Jane Street's socratic-tutor skill describes: a guard, a diagnostic, a skill map, and one question at a time.</p>
+    <p class="source">Inspired by <a href="https://github.com/janestreet/agent_skills">Jane Street's socratic-tutor skill</a> (MIT), from <a href="https://x.com/RoundtableSpace/status/2119380660288999692">@RoundtableSpace's post</a>. This page is a simulation of that idea. It is not Jane Street's tool.</p>
+  </header>
+
+  <section class="notice" aria-label="This page is a simulation">
+    <p><strong>Simulation, inspired by the skill.</strong> It is not Jane Street's tool. Clifton Air Co., the emails, the street addresses, and the price-book range are fictional. Nothing here is a quote for a real job, and nothing is uploaded. The page does not call a model or use the network. Every reply is scripted in this tab.</p>
+    <noscript>
+      <p>JavaScript runs the two sides. Without it, the shape is still this: a chatbot lectures; the tutor answers a one-off question and stays out of a quiz; a clear "teach me" runs four diagnostic questions, draws a skill map from 0 to 5, asks one question at a time, holds a level until two independent checks, brings an old subskill back, and ends with a mixed assessment. The install command is in the copy section below.</p>
+    </noscript>
+  </section>
+
+  <section class="explainer" aria-labelledby="method-title">
+    <h2 id="method-title">How the skill teaches</h2>
+    <p>The skill is a session, not an answer. It starts when you ask to be taught, quizzed, drilled, or helped to mastery. A one-off "explain this" gets a normal answer, and the loop stays off. If the request is unclear, it asks one question:</p>
+    <blockquote>Want a quick answer, or should I actually teach you this properly?</blockquote>
+    <ol>
+      <li><strong>Diagnostic first.</strong> Break the topic into 4 to 10 subskills, then ask 3 to 5 questions, easy to hard, before teaching anything. This session uses 5 subskills and 4 questions.</li>
+      <li><strong>Skill map, levels 0 to 5.</strong> 0 unaware. 1 heard of it. 2 can follow along. 3 can do with help. 4 can do independently. 5 can teach it / handle edge cases. The bars use &#9608; and &#9617;.</li>
+      <li><strong>One question at a time.</strong> A wrong answer gets a narrower question. The answer stays back. After two misses, a short explanation, then the same idea from a new angle.</li>
+      <li><strong>Be strict.</strong> A level is earned across two independent checks, and one of them has to be unprompted recall. One lucky answer does not move it. The toggle shows the looser behavior beside that rule.</li>
+      <li><strong>Spaced review.</strong> An earlier subskill comes back without warning. A miss lowers it.</li>
+      <li><strong>Final mixed assessment.</strong> The real skill keeps going until every subskill is at 4, or at 5 if you asked for mastery, then mixes the topic. This page does one integrative problem and a summary, and then it stops.</li>
+    </ol>
+  </section>
+
+  <section id="shop" aria-labelledby="shop-title">
+    <h2 id="shop-title">The shop this example uses</h2>
+    <p>The questions use this setup. All of it is made up.</p>
+    <ul class="facts">
+      <li><strong>Shop.</strong> Clifton Air Co., Clifton, Cincinnati. An owner and two techs. The agent can draft. It cannot visit the house.</li>
+      <li><strong>Price book.</strong> One example line: a standard furnace replacement is $4,800 to $7,200. That range is not a real quote.</li>
+      <li><strong>Outside the book.</strong> Oil boilers, heat pumps, and commercial jobs.</li>
+      <li><strong>The emails.</strong> Invented for this page. No customer name, no phone number, no account.</li>
+    </ul>
+  </section>
+
+  <section id="setup" aria-labelledby="say-title">
+    <h2 id="say-title">What you say to the agent</h2>
+    <p>Pick one sentence. Both sides hear the same words.</p>
+    <div id="prompts"></div>
+  </section>
+
+  <div class="segment modes" role="group" aria-label="Which side to read">
+    <button type="button" id="tab-chat" data-mode="chat" aria-pressed="true">Chatbot</button>
+    <button type="button" id="tab-tutor" data-mode="tutor" aria-pressed="false">Socratic tutor</button>
+  </div>
+  <p class="hint">On a phone, the tabs switch sides. On a wide screen, the chatbot stays on the left and the tutor stays on the right.</p>
+
+  <div class="panels" id="panels" data-mode="chat">
+    <section id="chat" class="panel panel-chat" aria-labelledby="chat-title">
+      <h2 id="chat-title">Chatbot</h2>
+      <p>Pick a sentence above. This side hands you the whole answer in one lecture.</p>
+    </section>
+    <section id="tutor" class="panel panel-tutor" aria-labelledby="tutor-fallback">
+      <h2 id="tutor-fallback">Socratic tutor</h2>
+      <p>Pick a sentence above. A lesson starts only if you ask to be taught.</p>
+    </section>
+  </div>
+
+  <section class="takeaway" aria-labelledby="copy-title">
+    <h2 id="copy-title">Copy this into your own agent</h2>
+    <p>The skill directory is <code>socratic-tutor</code> in Jane Street's repo. This command adds that skill:</p>
+    <pre class="install" id="install-command">npx skills add https://github.com/janestreet/agent_skills --skill socratic-tutor</pre>
+    <button type="button" id="copy">Copy the command</button>
+    <p id="copy-status" class="hint" role="status"></p>
+    <p>Then say "teach me" and name the topic. In a normal chatbot, paste the body of <a href="https://github.com/janestreet/agent_skills/blob/master/socratic-tutor/SKILL.md">SKILL.md</a> and ask to be taught.</p>
+    <p>The real skill also accepts "show progress", "harder", "easier", "just tell me", "save state", and "resume from" at any time. This simulation leaves those commands unwired. The license on the skill is MIT.</p>
+    <p><a href="https://github.com/janestreet/agent_skills">github.com/janestreet/agent_skills</a> · <a href="https://x.com/RoundtableSpace/status/2119380660288999692">@RoundtableSpace on X</a></p>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Clifton Air Co. is fiction. This is a simulation inspired by the socratic-tutor skill, not Jane Street's tool.</p>
+    <p><a href="https://x.com/RoundtableSpace/status/2119380660288999692">@RoundtableSpace's post</a> · <a href="https://github.com/janestreet/agent_skills/tree/master/socratic-tutor">socratic-tutor</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
