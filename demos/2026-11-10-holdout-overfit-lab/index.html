@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hold-out overfitting lab — Bookmark Lab</title>
+<meta name="description" content="A phone-friendly simulation of tuning a fictional Cincinnati HVAC assistant with and without a sealed hold-out. The tune-set score climbs. Unseen messages peak, then fall.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231f4f48'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Simulation · Westwood Air</p>
+    <h1>Hold-out overfitting lab</h1>
+    <p class="lede">Westwood Air is a made-up heating shop in Westwood, Cincinnati. You are tuning a small assistant that drafts replies to customer messages. The score on the messages it studies can climb toward 100% while messages it has never seen get worse than the base assistant.</p>
+    <p class="source">From <a href="https://x.com/aaronklaw/status/2118734654010221043">@aaronklaw’s post</a> on learning to fine-tune legal models. He used Unsloth’s free notebooks. The first model looked excellent on the data it had studied, then did worse than the base model on anything new. This page simulates that lesson. It is not his model.</p>
+  </header>
+
+  <section class="notice" aria-label="This page is a simulation">
+    <p><strong>Simulation, not a trained model.</strong> Westwood Air, the messages, and the price book are fictional. Nothing here is a quote for a real job, legal advice, or a legal model. Nothing is uploaded. The page does not call a network. Every score is a checklist graded in this tab.</p>
+    <noscript>
+      <p>JavaScript draws the curves. The shape they show is this: split a hold-out into its own folder before you tune, write down what a good reply is, then watch two scores. The tune-set score climbs toward 100%. The hold-out rises, then falls below the base assistant once the tune set is memorized. A leak switch copies the hold-out into tuning so that score looks finished, and a sealed next-week folder still exposes it. Set aside test cases first. Be suspicious of near-perfect scores. Never tune on your test set.</p>
+    </noscript>
+  </section>
+
+  <section class="explainer" aria-labelledby="lesson-title">
+    <h2 id="lesson-title">What went wrong the first time</h2>
+    <p>The training loss fell and the studied examples looked right. New matters did not. The same trap shows up if you grade a prompt or an agent on the examples you used to tune it.</p>
+    <ol>
+      <li><strong>Split first.</strong> Take the hold-out out before any tuning and put it in another folder, with a note that says what it is.</li>
+      <li><strong>Write the definition first.</strong> Decide what a good reply is before you look at a score.</li>
+      <li><strong>Near zero is a warning.</strong> A small model memorizes fast. A perfect score on the tune set is a reason to look at messages it has not seen.</li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="book-title">
+    <h2 id="book-title">The sample price book</h2>
+    <ul class="facts">
+      <li><strong>Maintenance visit.</strong> $90–$140.</li>
+      <li><strong>Thermostat replacement,</strong> when the customer asked for one. $160–$240.</li>
+      <li><strong>Capacitor replacement,</strong> when the customer asked for one. $180–$260.</li>
+      <li><strong>Everything else.</strong> A technician looks before anyone names a price. That includes no heat, no cooling, noise, leaks, oil, commercial units, and replacement estimates.</li>
+      <li><strong>Gas smell.</strong> Leave the building and call the gas company before a visit.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="folder-title">
+    <h2 id="folder-title">Three folders, split before tuning</h2>
+    <p class="caption">Eighteen lab messages, plus eight from next week. The hold-out note is the file you write before you touch the slider.</p>
+    <div class="folders" id="folders"></div>
+    <pre class="file" id="hold-file">holdout/HOLDOUT.md
+These six messages were split off before tuning.
+Do not grade the assistant on them and also teach it with them.</pre>
+  </section>
+
+  <section aria-labelledby="setup-title">
+    <h2 id="setup-title">How this run is set up</h2>
+    <div class="segment" role="group" aria-label="Hold-out split">
+      <button type="button" id="split-on" data-split="sealed" aria-pressed="true">Seal the hold-out</button>
+      <button type="button" id="split-off" data-split="all" aria-pressed="false">Tune on every lab message</button>
+    </div>
+    <button type="button" class="toggle" id="leak" aria-pressed="false">
+      <span class="box" aria-hidden="true"></span>
+      <span class="toggle-copy">
+        <span class="toggle-title">Leak the hold-out into tuning</span>
+        <span class="toggle-detail" id="leak-detail">Copies the six sealed messages into the tune folder. Their score can look finished. Next week was never copied.</span>
+      </span>
+    </button>
+  </section>
+
+  <section aria-labelledby="rubric-title">
+    <h2 id="rubric-title">Definition of good</h2>
+    <p class="caption">Write this down before you move the slider. The score is the share of checked lines the reply hits. Uncheck a line to stop grading it. Editing the words keeps the line’s check.</p>
+    <div class="segment presets" role="group" aria-label="Rubric presets">
+      <button type="button" id="preset-written" data-preset="written" aria-pressed="true">Written first</button>
+      <button type="button" id="preset-polite" data-preset="polite" aria-pressed="false">Looks polite</button>
+      <button type="button" id="preset-dollar" data-preset="dollar" aria-pressed="false">Any dollar amount</button>
+    </div>
+    <p class="hint" id="preset-detail">Job, price rule, urgency, and no invented part.</p>
+    <div id="rubric"></div>
+    <p class="banner" id="lock-note" hidden>The definition changed after tuning started. The new score is not the same test as the one you wrote down first.</p>
+  </section>
+
+  <section class="hero" aria-labelledby="score-title">
+    <h2 id="score-title">Two scores, plus next week</h2>
+    <label class="slider-label" for="epoch">Tuning intensity <span id="epoch-readout">Epoch 0</span></label>
+    <input id="epoch" type="range" min="0" max="8" step="1" value="0" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0" aria-valuetext="Epoch 0, base assistant">
+    <div class="ticks" aria-hidden="true"><span>0 base</span><span>4</span><span>8 memorized</span></div>
+    <p class="loss-line"><strong id="sticky-loss">Loss 0.75</strong> <span id="sticky-hint">Tune-set loss. Near zero means the studied messages were memorized.</span></p>
+    <p class="caption" id="epoch-note"></p>
+    <div class="scores" id="scores"></div>
+    <p class="reading" id="reading"></p>
+  </section>
+
+  <section aria-labelledby="chart-title">
+    <h2 id="chart-title">Studied messages versus unseen ones</h2>
+    <ul class="legend" id="legend">
+      <li><i class="swatch train" aria-hidden="true"></i> Tuned on</li>
+      <li><i class="swatch hold" aria-hidden="true"></i> <span id="legend-hold">Hold-out</span></li>
+      <li><i class="swatch week" aria-hidden="true"></i> Next week</li>
+    </ul>
+    <div class="panel">
+      <svg id="chart" viewBox="0 0 360 210" role="img" aria-labelledby="chart-title chart-desc"></svg>
+      <p class="sr" id="chart-desc"></p>
+      <p class="caption" id="chart-caption">The line for studied messages should climb. A real hold-out rises while general rules help, then falls once those messages are memorized.</p>
+    </div>
+    <details>
+      <summary>Scores at every epoch</summary>
+      <div class="table-wrap">
+        <table id="epoch-table">
+          <caption class="sr">Simulated score at each epoch</caption>
+          <thead>
+            <tr><th>Epoch</th><th>Tuned on</th><th>Hold-out</th><th>Next week</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <section aria-labelledby="reply-title">
+    <h2 id="reply-title">One reply at this epoch</h2>
+    <div class="segment" role="group" aria-label="Which messages to read">
+      <button type="button" id="tab-tune" data-group="tune" aria-pressed="false">Tuned</button>
+      <button type="button" id="tab-hold" data-group="holdout" aria-pressed="false">Hold-out</button>
+      <button type="button" id="tab-week" data-group="week" aria-pressed="true">Next week</button>
+    </div>
+    <div id="featured"></div>
+    <div id="cases"></div>
+  </section>
+
+  <section class="takeaway" aria-labelledby="take-title">
+    <h2 id="take-title">Takeaway</h2>
+    <ol>
+      <li>Set aside test cases first.</li>
+      <li>Be suspicious of near-perfect scores.</li>
+      <li>Never tune on your test set.</li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Westwood Air and the price book are fiction. This is a simulation of a hold-out, not a trained model and not legal advice.</p>
+    <p>Source: <a href="https://x.com/aaronklaw/status/2118734654010221043">@aaronklaw on learning to fine-tune</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
