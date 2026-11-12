@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Swap the LLM for a decision model — Bookmark Lab</title>
+<meta name="description" content="A phone-friendly simulation of routing a fictional Cincinnati HVAC shop's messages with an LLM, a small decision model, a confidence cutoff, and a key-order gotcha. Offline and scripted.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231d4e89'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Simulation · Cumminsville Comfort</p>
+    <h1>Swap the LLM for a decision model</h1>
+    <p class="lede">Cumminsville Comfort is a made-up heating shop in Cumminsville, Cincinnati. Web forms, texts, and emails have to be routed. A large model can label each one. A small decision model can return a probability per label and a confidence, and skip the paragraph.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/badlogicgames/status/2120089050476368318">@badlogicgames</a> (Mario Zechner):</p>
+    <blockquote>classifiers are all you need. bonus points if you use an llm to generate labeled data to train idiot models and then replace the llm with it</blockquote>
+    <p class="source">That post links <a href="https://strandsagents.com/blog/amazon-saves-millions-replacing-sonnet-with-strands-decider/">Amazon saves millions replacing Sonnet with Strands Decider</a> (Nov 9, 2026). This page simulates the pattern on 36 fictional messages. It is not Amazon’s classifier and not a trained model.</p>
+  </header>
+
+  <section class="notice" aria-label="This page is a simulation">
+    <p><strong>Simulation, not a trained model.</strong> Cumminsville Comfort, the messages, and the probabilities are fictional and scripted in this tab. The decision model matches the LLM on clear messages and is weaker on ambiguous ones. A key-order nudge is capped at the 0.19 the post reported. Nothing is uploaded. The page does not call a network or a model.</p>
+    <noscript>
+      <p>JavaScript runs the switch, the cutoff, the cost math, and the key-order nudge. Without it, the lesson is still this: use an LLM to label a closed catalog, train a small decision model on those labels, compare them in parallel, then route with the small model when its confidence is high enough. Sort JSON keys before you send them. The post’s Sonnet figures are 4,215 ms and about $0.0222 a ticket. The decider figures are 897 ms and about $250 to $500 per million tickets. At a small shop’s volume the dollar savings are tiny.</p>
+    </noscript>
+  </section>
+
+  <section aria-labelledby="numbers-title">
+    <h2 id="numbers-title">Numbers the post reported</h2>
+    <p class="caption">Amazon’s task was 20 categories plus a “none” option. This shop has 7 labels. The prices below are the post’s figures, not a measurement from this page.</p>
+    <ul class="facts">
+      <li><strong>Claude Sonnet 4.6.</strong> 4,215 ms average. 6,554 input tokens and 170 output tokens. About $0.0222 per ticket, about $22,200 per million tickets. Token prices they used: $3 per million input, $15 per million output. That token math is $0.022212, which they round to about $0.0222.</li>
+      <li><strong>Strands Decider E4B</strong> on SageMaker ml.g5.xlarge at $1.408 per instance-hour. 897 ms per call. 2,009 input tokens and 1 output token. At about 640 ms per request, about 5,600 tickets an hour on one instance. About $250 per million tickets at full use, about $500 per million with headroom. About 44× cheaper, a 98% reduction.</li>
+      <li><strong>The switch</strong> was a value read from AppConfig on every message: BEDROCK (LLM only), DUAL (both run, LLM result applied, disagreements compared), or DECIDER (decision model only). Rolling back was a 45-second config change.</li>
+      <li><strong>Key order.</strong> JSON key order changed output probabilities by up to 0.19, so they sort keys on every request. They tuned a confidence threshold before applying a label. Each label’s long description was rewritten as a 1–2 sentence criterion.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="catalog-title">
+    <h2 id="catalog-title">The catalog, as short criteria</h2>
+    <p class="caption">A closed list. The post’s point is that this shape of task can leave the LLM.</p>
+    <ul class="facts">
+      <li><strong>Emergency, no heat.</strong> The heat is off, the home is cold, or someone reports a gas smell. They need a person today.</li>
+      <li><strong>Maintenance booking.</strong> They want a tune-up, a filter, or a seasonal visit, and the system is still running.</li>
+      <li><strong>Quote request.</strong> They want a price for equipment or a replacement before anyone is booked.</li>
+      <li><strong>Billing question.</strong> They are asking about a charge, a refund, an invoice copy, or how to pay.</li>
+      <li><strong>Warranty claim.</strong> Something this shop installed or replaced has failed, and they want that coverage honored.</li>
+      <li><strong>Spam or vendor pitch.</strong> A seller, a lead broker, or an agency wants the shop's money or its customer list.</li>
+      <li><strong>Other / none.</strong> None of the labels fit. Hours, a thank-you, a wrong number, or a job note with no emergency.</li>
+    </ul>
+  </section>
+
+  <section id="inbox" aria-labelledby="switch-title">
+    <h2 id="switch-title">The three-way switch</h2>
+    <p>BEDROCK, DUAL, and DECIDER in the post. Here the LLM button is BEDROCK. DUAL is where you read disagreements. The LLM label is the one that counts until you move the switch.</p>
+    <div class="segment three" role="group" aria-label="Routing switch">
+      <button type="button" id="mode-llm" data-mode="llm" aria-pressed="false">LLM</button>
+      <button type="button" id="mode-dual" data-mode="dual" aria-pressed="true">DUAL</button>
+      <button type="button" id="mode-decider" data-mode="decider" aria-pressed="false">DECIDER</button>
+    </div>
+    <p class="hint" id="mode-note"></p>
+    <pre class="file" id="config"></pre>
+
+    <h3 id="detail-title">One message</h3>
+    <div class="stepper">
+      <button type="button" id="prev">Previous</button>
+      <button type="button" id="next">Next</button>
+    </div>
+    <label class="field" for="picker">Jump to a message</label>
+    <select id="picker"></select>
+    <p class="caption" id="pos"></p>
+    <div id="detail"></div>
+
+    <section id="dual-review" aria-labelledby="disagree-title">
+      <h3 id="disagree-title">Disagreements</h3>
+      <p class="reading" id="agree"></p>
+      <p id="disagree-empty" hidden>They agree on every message.</p>
+      <div class="table-wrap">
+        <table class="cards">
+          <caption class="sr">Messages where the LLM and the decision model pick different labels</caption>
+          <thead>
+            <tr>
+              <th>Message</th>
+              <th>Ground truth</th>
+              <th>LLM</th>
+              <th>Decider</th>
+              <th>Decider confidence</th>
+            </tr>
+          </thead>
+          <tbody id="disagree-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <details>
+      <summary>All 36 messages</summary>
+      <div id="roster"></div>
+    </details>
+  </section>
+
+  <section class="hero" aria-labelledby="threshold-title">
+    <h2 id="threshold-title">Confidence threshold</h2>
+    <p>Below the cutoff the decider abstains. Send those to a person, or fall back to the LLM. Accuracy is the share it gets right on the messages it still labels. Coverage is how many it labels. Fallback rate is the rest.</p>
+    <label class="slider-label" for="threshold">Cutoff <span id="threshold-readout">60%</span></label>
+    <input id="threshold" type="range" min="0" max="100" step="1" value="60" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60" aria-valuetext="60 percent">
+    <div class="ticks" aria-hidden="true"><span>0% label all</span><span>100% label none</span></div>
+    <div class="segment two" role="group" aria-label="Where abstained messages go">
+      <button type="button" id="fallback-human" data-fallback="human" aria-pressed="true">Human review</button>
+      <button type="button" id="fallback-llm" data-fallback="llm" aria-pressed="false">Fall back to the LLM</button>
+    </div>
+    <div class="scores" id="metrics"></div>
+    <p class="reading" id="metric-note"></p>
+  </section>
+
+  <section aria-labelledby="cost-title">
+    <h2 id="cost-title">Cost and latency</h2>
+    <p>Per-ticket figures from the post. The decider still runs on every message, so its price does not fall when it abstains. What changes is how often you also pay for a person or for Sonnet.</p>
+    <label class="slider-label" for="volume">Messages this month <span id="volume-readout">2,000 / month</span></label>
+    <input id="volume" type="range" min="0" max="9" step="1" value="0" aria-valuemin="0" aria-valuemax="9" aria-valuenow="0" aria-valuetext="2,000 messages per month">
+    <div class="ticks" aria-hidden="true"><span>2,000</span><span>1M+</span></div>
+    <div class="scores" id="costs"></div>
+    <p class="reading" id="volume-note"></p>
+    <p class="reading" id="switch-note"></p>
+    <p class="caption" id="latency-note"></p>
+    <p class="caption" id="month-note"></p>
+    <p class="hint">At small-business volumes the dollar savings are tiny. The real wins are latency, privacy (the model runs locally, self-hosted), and predictability. At high volume, the savings dominate. The post’s per-ticket rates assume the instance is busy. A box left on all month costs about the same whether you send 2,000 messages or none.</p>
+  </section>
+
+  <section aria-labelledby="gotcha-title">
+    <h2 id="gotcha-title">Key order</h2>
+    <p>The post says JSON key order changed output probabilities by up to 0.19, so they sort keys on every request. This simulation applies a fixed nudge, never larger than 0.19. It is not their model. Shuffle the keys, watch a borderline label flip, then sort them.</p>
+    <div class="segment two" role="group" aria-label="JSON key order">
+      <button type="button" id="shuffle" aria-pressed="false">Shuffle JSON key order</button>
+      <button type="button" id="sort-keys" aria-pressed="true">Sort keys</button>
+    </div>
+    <p class="reading" id="gotcha-note"></p>
+    <p class="caption" id="flip-count"></p>
+    <div id="gotcha-bars"></div>
+    <pre class="file" id="gotcha-json"></pre>
+  </section>
+
+  <section aria-labelledby="works-title">
+    <h2 id="works-title">When this works</h2>
+    <div class="two">
+      <div>
+        <h3>Works when</h3>
+        <ul class="works">
+          <li>The task is a closed choice from a known catalog.</li>
+          <li>Volume is high.</li>
+          <li>Latency matters.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Skip it when</h3>
+        <ul class="stops">
+          <li>Labels need explanation text.</li>
+          <li>The catalog changes weekly.</li>
+          <li>The context does not fit in a few thousand tokens.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="takeaway" aria-labelledby="recipe-title">
+    <h2 id="recipe-title">Use an LLM to label, then train a small one</h2>
+    <ol>
+      <li>Write each label as a one- or two-sentence criterion. The post says they rewrote the long descriptions this way.</li>
+      <li>Use an LLM to label a large set of real messages with those criteria.</li>
+      <li>Train a small decision model on that set. It returns a probability per option and a confidence, not a paragraph.</li>
+      <li>Run both on every message, keep the LLM label, and read the disagreements. Pick a confidence threshold. Then flip the config to the small model. The LLM path stays one config change away.</li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Cumminsville Comfort and the 36 messages are fiction. The probabilities are scripted. This is not Amazon’s model and not a trained classifier.</p>
+    <p>Sources: <a href="https://x.com/badlogicgames/status/2120089050476368318">@badlogicgames on classifiers</a> and <a href="https://strandsagents.com/blog/amazon-saves-millions-replacing-sonnet-with-strands-decider/">the Strands Decider post</a>.</p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
