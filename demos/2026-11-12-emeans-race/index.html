@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Race Lloyd against e-means — Bookmark Lab</title>
+<meta name="description" content="A phone-friendly race between Lloyd k-means and a simplified EMA mini-batch, on fictional service calls for a made-up Cincinnati HVAC shop.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231d4e89'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Simulation · Oakley Comfort Co.</p>
+    <h1>Race Lloyd against e-means</h1>
+    <p class="lede">Oakley Comfort Co. is a made-up heating shop in Oakley, Cincinnati. The dots are made-up service calls on a made-up map of the east side. The shop wants a few route zones. Lloyd’s k-means reads every call, then parks each center on the average of the calls that chose it. The other map moves the centers from a small batch, using a fading sum and a fading count.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/swann_bessa/status/2120200714630594911">@swann_bessa</a> (Swann Bessa), 10 Nov 2026:</p>
+    <blockquote>Introducing e-means, an algorithm beating k-means in 10x fewer epochs. With order of magnitude wall-clock speedups, e-means is released in FAISS and needs no hyperparameter tuning beyond k. It is robust to various scales and datasets. Still skeptical ? Just try e-means</blockquote>
+    <p class="source">The thread points at the <a href="https://e-means.github.io/">e-means blog</a>, the paper <a href="https://arxiv.org/abs/2611.09501">e-means: outperforming k-means (in one-tenth the epochs)</a>, and the code in <a href="https://github.com/facebookresearch/faiss/tree/main/contrib/e_means">FAISS <code>contrib/e_means</code></a>. Coauthors on the paper are Pierre-Emmanuel Mazaré, Gergely Szilvasy, Hugo Touvron, David Picard, Matthijs Douze, and Hervé Jégou.</p>
+  </header>
+
+  <section class="caveat" aria-label="What this page is and is not">
+    <p><strong>A simplified copy, not FAISS.</strong> The JavaScript on this page is an educational re-implementation of the update rule. It is not the FAISS 1.16 code, and it does not use their GPU kernels. The “about 10×” figures are the authors’ numbers, measured on embedding datasets, not on this map. Nothing here is a real customer, a real address, or a real route.</p>
+    <noscript>
+      <p>JavaScript runs the race. Without it, the lesson is still this: Lloyd’s k-means reads every point before it moves a center. e-means reads a small batch and updates a fading sum S and count N. The center is S divided by N. The batch size and the step come from a formula in the number of points, the number of clusters, and how many passes you budget, so you do not sweep them by hand. The paper reports that this reaches the loss Lloyd has after 25 passes in about 1.4 to 2.6 passes. Those figures are the authors’.</p>
+    </noscript>
+  </section>
+
+  <section class="hero" aria-labelledby="race-title">
+    <h2 id="race-title">Same calls, two updates</h2>
+    <p>Both maps start from the same k calls, picked at random. Play runs the race. Step moves the e-means-style side through one batch. Lloyd takes a step only when that side finishes another full pass, so the chart stays on one clock. A Lloyd step reads every call. A batch reads B calls.</p>
+
+    <div class="transport" role="group" aria-label="Race controls">
+      <button type="button" id="play" aria-pressed="false">Play</button>
+      <button type="button" id="step">Step</button>
+      <button type="button" id="reset">Reset</button>
+    </div>
+
+    <label class="slider-label" for="k">Zones <span id="k-readout">8 zones</span></label>
+    <input id="k" type="range" min="3" max="16" step="1" value="8" aria-valuemin="3" aria-valuemax="16" aria-valuenow="8" aria-valuetext="8 zones">
+    <div class="ticks" aria-hidden="true"><span>3</span><span>16</span></div>
+
+    <label class="slider-label" for="calls">Service calls <span id="calls-readout">8,000 calls</span></label>
+    <input id="calls" type="range" min="5000" max="20000" step="1000" value="8000" aria-valuemin="5000" aria-valuemax="20000" aria-valuenow="8000" aria-valuetext="8,000 calls">
+    <div class="ticks" aria-hidden="true"><span>5,000</span><span>20,000</span></div>
+
+    <label class="slider-label" for="epochs">Pass budget <span id="epochs-readout">8 passes</span></label>
+    <input id="epochs" type="range" min="2" max="12" step="1" value="8" aria-valuemin="2" aria-valuemax="12" aria-valuenow="8" aria-valuetext="8 passes">
+    <div class="ticks" aria-hidden="true"><span>2</span><span>12</span></div>
+
+    <label class="field" for="seed">Seed</label>
+    <div class="seed-row">
+      <input id="seed" type="number" min="1" max="99999" step="1" value="7" inputmode="numeric">
+      <button type="button" id="reseed">New map</button>
+    </div>
+    <p class="hint">Changing a control restarts both sides on the current map. New map draws a new set of calls. The default that the check covers is 8,000 calls, 8 zones, 8 passes, seed 7.</p>
+
+    <div class="segment two" role="group" aria-label="How a batch updates the centers">
+      <button type="button" id="mode-ema" aria-pressed="true">EMA of sums and counts</button>
+      <button type="button" id="mode-avg" aria-pressed="false">Running average</button>
+    </div>
+
+    <button type="button" class="toggle" id="cosine" aria-pressed="true">
+      <span class="box" aria-hidden="true"></span>
+      <span class="toggle-copy">
+        <span class="toggle-title">Cosine decay on the step</span>
+        <span class="toggle-detail" id="cosine-detail">On: the step cools from its start down to a tenth of that start. Off: the step stays put.</span>
+      </span>
+    </button>
+    <button type="button" class="toggle" id="revive" aria-pressed="true">
+      <span class="box" aria-hidden="true"></span>
+      <span class="toggle-copy">
+        <span class="toggle-title">Revive dead clusters</span>
+        <span class="toggle-detail">Every fifth batch, a cluster whose count is under a tenth of the average is replaced by splitting a busy cluster.</span>
+      </span>
+    </button>
+    <button type="button" class="toggle" id="finalize" aria-pressed="true">
+      <span class="box" aria-hidden="true"></span>
+      <span class="toggle-copy">
+        <span class="toggle-title">Last-pass mean at the end</span>
+        <span class="toggle-detail">After the last pass, set each center to the average of the calls assigned to it during that pass.</span>
+      </span>
+    </button>
+
+    <div class="scores four" id="scores">
+      <p class="score"><span class="name">Lloyd now</span><strong id="lloyd-now">—</strong><span class="base" id="lloyd-ep">pass 0</span></p>
+      <p class="score"><span class="name">e-means-style now</span><strong id="ema-now">—</strong><span class="base" id="ema-ep">pass 0</span></p>
+      <p class="score"><span class="name">Lloyd after 25 passes</span><strong id="lloyd-25">—</strong><span class="base">dashed line on the chart</span></p>
+      <p class="score"><span class="name">First time under that line</span><strong id="cross">—</strong><span class="base" id="cross-note">e-means-style</span></p>
+    </div>
+    <p class="reading" id="status"></p>
+
+    <div class="maps">
+      <figure>
+        <figcaption>Lloyd <span id="lloyd-touch">reads every call</span></figcaption>
+        <canvas class="map-canvas" id="lloyd-map" width="640" height="560" aria-label="Lloyd clusters on the made-up map"></canvas>
+      </figure>
+      <figure>
+        <figcaption>e-means-style <span id="ema-touch">reads one batch</span></figcaption>
+        <canvas class="map-canvas" id="ema-map" width="640" height="560" aria-label="e-means-style clusters on the made-up map"></canvas>
+      </figure>
+    </div>
+    <p class="caption" id="map-note">The black diamond is the made-up shop in Oakley. North is up. Colors are each map’s own groups: a color on the left is not the same calls as that color on the right. Rings are the centers. About 8% of the calls are scattered across the whole map. The rest sit in ten overlapping neighborhood blobs.</p>
+
+    <h3 id="chart-title">Mean squared error against passes</h3>
+    <ul class="legend">
+      <li><i class="swatch lloyd" aria-hidden="true"></i> Lloyd</li>
+      <li><i class="swatch ema" aria-hidden="true"></i> e-means-style</li>
+      <li><i class="swatch ref" aria-hidden="true"></i> Lloyd after 25 passes</li>
+    </ul>
+    <div class="panel">
+      <canvas id="chart" width="720" height="460" aria-hidden="true"></canvas>
+      <p class="caption" id="chart-caption">The dot is the first time the e-means-style error goes at or under Lloyd’s 25-pass error. Error is the average squared distance from a call to its nearest center, in made-up map units.</p>
+    </div>
+  </section>
+
+  <section class="explainer" aria-labelledby="means-title">
+    <h2 id="means-title">What k-means is doing</h2>
+    <p>You pick k centers. Every call joins the nearest center. Then each center moves to the average of its calls. That pair of steps is Lloyd’s algorithm. The error is the average squared distance from a call to its center. It falls, then it sticks at a local minimum. It is not guaranteed to find the best grouping.</p>
+    <p>In a vector search library, this is often the slow offline step. FAISS and the same kind of index build a codebook by clustering the vectors before a search can run. The paper’s point is that this clustering, not the later lookup, is what takes the passes. The shop is a small picture of that grouping: tickets into route zones, not a billion embeddings.</p>
+  </section>
+
+  <section class="explainer" aria-labelledby="ema-title">
+    <h2 id="ema-title">What the fading average changes</h2>
+    <p>e-means keeps, for each cluster, a sum S and a count N. The center is S / N. A batch of B calls is assigned to the nearest centers. If those calls contribute a sum s and a count n, the update is:</p>
+    <p>S ← (1 − α) S + α s, and N ← (1 − α) N + α n.</p>
+    <p>Old assignments fade. A running average, the 1967 MacQueen rule, never fades: it only adds s and n. Lloyd is the extreme where the batch is the whole set and α is 1, so S and N are replaced outright. The blog points out that this extreme sits in a bad corner of the settings they searched.</p>
+    <ol>
+      <li><strong>The step and the batch are formulas.</strong> α and B come from n, k, and the pass budget. You do not grid-search them. This page uses the quality batch from the FAISS 1.16 readme, the one FAISS picks when the dimension is 16 or lower. The map is 2D.</li>
+      <li><strong>Cosine decay.</strong> α starts at α0 and cools to 0.1 α0 on a cosine curve, the same shape as a learning-rate schedule. The paper’s floor is 0.1.</li>
+      <li><strong>A light start.</strong> Centers begin as k random calls. N starts at 10<sup>−10</sup>, so that guess weighs almost nothing. The FAISS code uses 2<sup>−16</sup> instead. This page follows the paper. The authors tried k-means++ and found it a bit better and much slower, so their default is this random start. Both maps here share it.</li>
+      <li><strong>Dead clusters.</strong> Every fifth batch, a cluster whose count is under 0.1 times the mean count is rebuilt by splitting a busy donor. The split nudges the donor by a factor of 0.0001, alternating by coordinate, and gives each child half the count. FAISS turns this off for dimension 2 and below, because the authors measured a held-out penalty on geographic sets. It stays on here so the switch does something.</li>
+      <li><strong>A short finish.</strong> The last pass records which calls joined which center, then each center becomes the plain average of those calls. The paper uses this as the default ending. On a million embeddings it moved the error by a fraction of a percent. On this map the change is small, and the page prints it.</li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="numbers-title">
+    <h2 id="numbers-title">Numbers the authors reported</h2>
+    <p class="caption">These are their measurements, not a result from this page. The paper’s abstract is the source for the pass counts and the GPU range. The blog states the same result a bit more loosely, and adds the CPU range.</p>
+    <ul class="facts">
+      <li><strong>Passes.</strong> On their embedding sets, e-means gets under the loss Lloyd has after 25 epochs in 1.4 to 2.6 epochs. The blog phrases that span as 1.2 to 3 epochs.</li>
+      <li><strong>Wall clock.</strong> They report about 10–45× less GPU time than Flash-KMeans at the same loss, and about 8–15× less CPU time than FAISS Lloyd. This page does not time either method. It counts passes and calls read.</li>
+      <li><strong>Where it shipped.</strong> FAISS 1.16.0, 9 Nov 2026, as <code>faiss.contrib.e_means</code>. The library default is 5 passes. The readme says 5 is typically enough to beat Lloyd at convergence.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="law-title">
+    <h2 id="law-title">The scaling rule this page actually uses</h2>
+    <p>FAISS writes the quality batch as B = 0.00439175 · k<sup>0.134749</sup> · n<sup>0.876473</sup> · T<sup>0.813344</sup>, rounded to the nearest power of two and capped near n / 2. The starting step is α0 = 0.8244 · k<sup>−0.4617</sup> · B<sup>0.9003</sup> · n<sup>−0.4498</sup> · T<sup>−0.1057</sup>, clamped to the range 0.0001 to 1. The paper’s Table 2 prints those same laws more coarsely: batch coefficient 0.0044, step 0.824, −0.46, 0.90, −0.45, −0.11.</p>
+    <p>I did not refit the powers. The laws were fit on high-dimensional embeddings, from about 100,000 points up, and the paper says they are not optimal for very low dimension. This map is 2D and a few thousand calls, which is outside that fit. The quality batch is still the honest default: it is what FAISS selects on its own when the dimension is 16 or lower. On the default map, with every switch on, that rule puts the EMA run under Lloyd’s 25-pass error in fewer passes than the budget. A running average on the same calls does not get under that line. The check in this folder asserts both. The larger throughput batch, coefficient 0.035134, is FAISS’s choice above 16 dimensions. It is not used here.</p>
+    <p>Other seeds and other k are a different problem. This simplified copy will not win every one of them. Lloyd on this page is the textbook full-batch mean. It does not revive empty clusters. FAISS’s own Lloyd can.</p>
+  </section>
+
+  <section aria-labelledby="zones-title">
+    <h2 id="zones-title">The made-up map</h2>
+    <p>Ten neighborhoods, placed by hand on a unit square. They are not geocodes. The blobs overlap, and they are different sizes, so a center can get stuck between them. The names are Oakley, Hyde Park, Madisonville, Norwood, Pleasant Ridge, Mount Lookout, Evanston, Kennedy Heights, O'Bryonville, and Columbia-Tusculum.</p>
+  </section>
+
+  <section aria-labelledby="try-title">
+    <h2 id="try-title">Try it for real</h2>
+    <p>This is the CPU quick start from the <a href="https://github.com/facebookresearch/faiss/blob/main/contrib/e_means/README.md">contrib/e_means README</a>, for FAISS 1.16. The update itself lives in <a href="https://github.com/facebookresearch/faiss/blob/main/contrib/e_means/base.py"><code>base.py</code></a>. Install with <code>pip install faiss-cpu</code>. On a GPU the class is <code>Emeans</code>, and you pass a tensor that is already on the device. The readme has that path.</p>
+    <pre class="file">import numpy as np
+from faiss.contrib.e_means import NumpyEmeans
+
+x = np.random.rand(200_000, 64).astype("float32")      # 200,000 vectors of dimension 64
+
+em = NumpyEmeans(64, 500)                    # 500 clusters, 5 passes over the data by default
+centroids, labels = em.train(x)          # (500, 64) float32, and each vector's cluster
+x_new = np.random.rand(100_000, 64).astype("float32")
+distances, new_labels = em.assign(x_new) # the nearest centroid of new vectors</pre>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Oakley Comfort Co. and the calls are fiction. This is a simplified JavaScript copy of the e-means update, not FAISS, and not a measurement of the paper’s speedups.</p>
+    <p>Sources: <a href="https://x.com/swann_bessa/status/2120200714630594911">@swann_bessa on e-means</a>, <a href="https://e-means.github.io/">the blog</a>, <a href="https://arxiv.org/pdf/2611.09501">the paper</a>, and <a href="https://github.com/facebookresearch/faiss/blob/main/contrib/e_means/README.md">the FAISS readme</a>.</p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
