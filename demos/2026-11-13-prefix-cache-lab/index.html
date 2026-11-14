@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prefix Cache Lab: why long local chats feel slow — Bookmark Lab</title>
+<meta name="description" content="A phone-friendly simulation of prefix KV-cache reuse for a fictional law firm’s local model. No network calls.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231d4e89'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Simulation · Brindle &amp; Quill</p>
+    <h1>Prefix Cache Lab: why long local chats feel slow</h1>
+    <p class="lede">Brindle &amp; Quill is a made-up two-lawyer firm. Client drafts stay in the office, so a paralegal asks a private model on a Mac mini about intake and about one pasted contract. The long shared prefix is the firm instructions, an engagement-letter template, and that contract. Each follow-up question is short. The wait before the first word is the engine reading tokens, not the Mac struggling to think.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/CerebralCoding_/status/2120803634833137891">@CerebralCoding_</a>, 12 Nov 2026:</p>
+    <blockquote>Your Mac was never slow at long chats. Your engine kept re-reading them. Qwen 3.8 27B on a 64GB M5 Pro Mac mini, TensorFold: 1.2.6: a follow-up re-reads 24K tokens, 76.8s before the first word. 1.2.7: reuses ~34K cached tokens, first word in 0.34 to 1.19s. Same box. Same model.</blockquote>
+  </header>
+
+  <section class="caveat" aria-label="What this page is and is not">
+    <p><strong>A simulation of the wait, not TensorFold and not Qwen.</strong> The bars divide recomputed tokens by a prefill speed you set. They do not run a model. The 76.8s and the 0.34–1.19s are the post’s reported benchmark. Every other time on this page is simulated. Brindle &amp; Quill, the paralegal’s questions, and the contract are fiction. Nothing here is a real client, a real file, or legal advice. The page does not call a network.</p>
+    <noscript>
+      <p>JavaScript draws the bars and plays the wait. Without it, the lesson is still this. The shared prefix is firm instructions, an engagement-letter template, and a pasted contract. With no cache, every follow-up prefills that whole history again, so time-to-first-token grows with the document. With a prefix cache, the first turn pays that prefill and later turns prefill only the new question, while the prefix stays byte-for-byte the same. A timestamp at the top of the system prompt changes token 0, so the cache cannot reuse the contract. Editing an earlier message keeps the tokens before the edit and recomputes from the edit onward. The post reported 76.8 seconds versus 0.34 to 1.19 seconds. This page’s other times are recomputed tokens divided by prefill speed, and a replay uses 50 ms of screen time per simulated second.</p>
+    </noscript>
+  </section>
+
+  <section aria-labelledby="numbers-title">
+    <h2 id="numbers-title">Numbers the post reported</h2>
+    <p class="caption">TensorFold on a 64GB M5 Pro Mac mini, model named in the post as Qwen 3.8 27B. Same computer, same model. These are the post’s figures, not a measurement from this page.</p>
+    <ul class="facts">
+      <li><strong>1.2.6.</strong> A follow-up re-reads 24K tokens and waits 76.8s before the first word.</li>
+      <li><strong>1.2.7.</strong> Reuses about 34K cached tokens. The first word arrives in 0.34 to 1.19s.</li>
+      <li><strong>What changed.</strong> The engine kept the KV cache for an unchanged prefix and prefilled only the new tokens. The post does not publish the prefill speed. 24,000 ÷ 76.8 is 312.5 tokens per second. The slider defaults to 315, so 24,000 tokens take 76.2s in this simulation. That is a round neighbor of 76.8s, not a fit to TensorFold.</li>
+    </ul>
+  </section>
+
+  <section class="hero" aria-labelledby="lab-title">
+    <h2 id="lab-title">Same contract, two engines</h2>
+    <p>No cache prefills the whole history on every turn. Prefix cache prefills the history once, then only the new question, if the opening tokens still match. The first turn is cold either way: nothing has been computed yet. The gap is the follow-ups.</p>
+
+    <div class="segment two" role="group" aria-label="Cache mode">
+      <button type="button" id="mode-nocache" aria-pressed="false">No cache</button>
+      <button type="button" id="mode-cache" aria-pressed="true">Prefix cache</button>
+    </div>
+
+    <label class="slider-label" for="prefill">Prefill speed <span id="prefill-readout">315 tokens/sec</span></label>
+    <input id="prefill" type="range" min="50" max="2000" step="5" value="315" aria-valuemin="50" aria-valuemax="2000" aria-valuenow="315" aria-valuetext="315 tokens per second">
+    <div class="ticks" aria-hidden="true"><span>50 tok/s</span><span>2,000</span></div>
+    <p class="hint" id="prefill-hint"></p>
+
+    <label class="slider-label" for="contract">Pasted contract <span id="contract-readout">22,000 tokens</span></label>
+    <input id="contract" type="range" min="4000" max="48000" step="1000" value="22000" aria-valuemin="4000" aria-valuemax="48000" aria-valuenow="22000" aria-valuetext="22,000 tokens">
+    <div class="ticks" aria-hidden="true"><span>4,000</span><span>48,000</span></div>
+
+    <label class="slider-label" for="turns">Turns <span id="turns-readout">4 turns</span></label>
+    <input id="turns" type="range" min="2" max="8" step="1" value="4" aria-valuemin="2" aria-valuemax="8" aria-valuenow="4" aria-valuetext="4 turns">
+    <div class="ticks" aria-hidden="true"><span>2</span><span>8</span></div>
+    <p class="hint">Token counts are a scripted stand-in, not a tokenizer. The default contract is sized so the opening prefix is 24,000 tokens: 720 of firm instructions, 1,280 of engagement-letter template, and 22,000 of contract. Each question is 40 tokens. Each scripted reply is 220. Those 220 are generated after the first word, so they are not in the wait. They do sit in the cache for the next turn.</p>
+
+    <h3 id="prefix-title">What the prefix is made of</h3>
+    <div class="mix" id="mix" role="img" aria-label="Prefix composition"></div>
+    <ul class="mix-legend" id="mix-legend"></ul>
+    <details>
+      <summary>Read the fictional prefix</summary>
+      <p><strong>Firm instructions, 720 tokens.</strong> “Answer only from the engagement-letter template and the pasted contract. If the draft is silent, say so. Do not invent a citation. Do not send the draft off this computer.”</p>
+      <p><strong>Engagement-letter template, 1,280 tokens.</strong> “Brindle &amp; Quill engagement letter (fiction). Scope: read the attached draft and answer the paralegal. Either party may stop. The firm keeps its forms. No real client is named.”</p>
+      <p><strong>Pasted contract, the slider.</strong> “Northwharf Studio services agreement (fiction). Notice: 30 days, in writing. Work product: the client owns the deliverables, and the firm keeps its forms. Law: the fictional State of Ashwick. Late invoices: a mark after 15 days, with no amount and no account. Confidentiality: the draft stays in the office. Notices: 1 Ledger Lane, Ashwick.” The sample is the whole clause list. The token count stands in for a longer paste of the same fictional agreement.</p>
+    </details>
+
+    <h3 id="breaker-title">Cache breaker</h3>
+    <div class="segment breaker" role="group" aria-label="Cache breaker">
+      <button type="button" id="breaker-none" aria-pressed="true">
+        <span class="toggle-title">Prefix stays identical</span>
+        <span class="toggle-detail">Follow-ups reuse every token before the new question.</span>
+      </button>
+      <button type="button" id="breaker-timestamp" aria-pressed="false">
+        <span class="toggle-title">Timestamp at the top</span>
+        <span class="toggle-detail">A new clock reading is the first line of the system prompt. Token 0 changed, so the contract cannot be reused.</span>
+      </button>
+      <button type="button" id="breaker-edit" aria-pressed="false">
+        <span class="toggle-title">Edit an early message</span>
+        <span class="toggle-detail">The paralegal rewrites the first question on turn 3. A shorter chat puts that rewrite on the last turn. Tokens before the question stay cached. A later turn can hit again.</span>
+      </button>
+    </div>
+    <p class="hint" id="breaker-note"></p>
+
+    <h3 id="summary-title">Total wait, both modes</h3>
+    <p class="caption">Simulated time to the first word, summed across the conversation. Drafting the reply comes after that and is left out. It is similar in both modes, and it is not what the post measured. A real cache hit still spends a fraction of a second loading the cache and sampling the first word. That is why the post measured 0.34 to 1.19 seconds, while this division prints about 0.13 seconds for a 40-token question at 315 tokens per second. The timeline shows the mode you selected. These totals always show both.</p>
+    <div class="scores four" id="summary"></div>
+    <div id="timebars"></div>
+    <p class="reading hint" id="speed-note"></p>
+
+    <div class="transport" role="group" aria-label="Replay the wait">
+      <button type="button" id="play" aria-pressed="false">Play the wait</button>
+      <button type="button" id="step">Step</button>
+      <button type="button" id="reset">Reset</button>
+    </div>
+    <p class="hint" id="play-note"></p>
+    <p class="thinking" id="clock" hidden></p>
+    <div class="meter" id="meter" hidden><span id="meter-fill"></span></div>
+
+    <ul class="legend">
+      <li><i class="swatch cached" aria-hidden="true"></i> Cached prefix</li>
+      <li><i class="swatch recompute" aria-hidden="true"></i> Recomputed prefix</li>
+      <li><i class="swatch new" aria-hidden="true"></i> New tokens, also prefilled</li>
+    </ul>
+    <p class="caption">Bar lengths follow token counts. A piece smaller than 8 pixels is drawn at 8 pixels so the color stays visible. Read the counts.</p>
+    <div id="timeline" aria-live="off"></div>
+  </section>
+
+  <section class="explainer" aria-labelledby="why-title">
+    <h2 id="why-title">Why a matching prefix can be kept</h2>
+    <p>The model builds a key and a value for each token it has already read. That pair is the KV cache. The next token attends to those pairs. If the conversation still begins with the same tokens, the pairs from last time are still right, and the engine can skip them. It prefills only the suffix that differs. Time to the first word then follows the new tokens, not the whole history.</p>
+    <p>Attention looks backward. The key at a position was computed from everything before it. Change a token, and every key after that position is stale. Tokens before the change never looked at it, so they can stay. A timestamp in the first line throws away the contract. An edit to the first question keeps the contract and recomputes the tail. Putting the clock at the end of the prompt, after the stable text, leaves the long prefix reusable.</p>
+    <p>The first request still pays the full prefill. The cache is empty until something has been computed. A later request also misses if it lands in a different slot that does not hold this prefix.</p>
+  </section>
+
+  <section aria-labelledby="memory-title">
+    <h2 id="memory-title">The cache costs memory</h2>
+    <p>Keeping the prefix means keeping those keys and values. The cache grows in a straight line with context. This bar is approximate. It is not a measurement of Qwen 3.8 27B, TensorFold, or a 64GB Mac mini.</p>
+    <p id="memory-readout" class="memory-readout"></p>
+    <div class="memory-track" id="memory-track" role="img" aria-label="Approximate KV cache versus 64 GB"><span id="memory-fill"></span></div>
+    <p class="caption" id="memory-caption"></p>
+    <p class="hint">The sketch charges 262,144 bytes of KV state per token: 2 × 64 layers × 8 KV heads × a head size of 128 × 2 bytes. That is fp16 cache for a made-up 30B-class model with grouped-query attention. A real model may use another shape. A runtime may store KV in q8 or q4, which is smaller. Model weights are not in the bar. The track is 64 GB only because the post’s computer had 64GB of unified memory. Each extra 10,000 tokens adds about 2.44 GB on this sketch.</p>
+  </section>
+
+  <section aria-labelledby="try-title">
+    <h2 id="try-title">Try it yourself</h2>
+    <p>On your own machine, a local server can reuse a prefix when the next prompt starts with the same bytes. This page does not run that server. Flag names move. The notes below match the llama.cpp server README as of this writing. Check the README for the version you run before you rely on a default.</p>
+    <p><code>llama-server</code> documents prompt caching on <code>POST /completion</code>. <code>cache_prompt</code> defaults to true. The server compares the prompt with the previous completion in that slot and evaluates the suffix that differs. <code>--cache-prompt</code> is on by default. <code>--no-cache-prompt</code> turns it off. <code>id_slot</code> pins the chat to one slot. The default <code>id_slot</code> is <code>-1</code>, which assigns an idle slot, and an empty slot prefills from scratch. The README also says logits are not guaranteed to be bit-for-bit identical when the batch size changes, so a cache hit can be nondeterministic.</p>
+    <pre class="file">curl --request POST \
+  --url http://127.0.0.1:9931/completion \
+  --header "Content-Type: application/json" \
+  --data '{
+    "prompt": "&lt;same instructions, letter, and contract as last time&gt;\nParalegal: &lt;only the new question&gt;",
+    "cache_prompt": true,
+    "id_slot": 0,
+    "n_predict": 128
+  }'</pre>
+    <p>The port <code>9931</code> is the one in the current server README’s curl example. Yours is whatever you passed. Keep the prefix identical, including spaces. Put a timestamp after the contract, not in front of it.</p>
+    <p>Ollama’s chat response can include <code>prompt_eval_count</code> and <code>prompt_eval_cached_count</code>. A cached count above zero means that runner reused prefix tokens. Some runners reuse a shared prefix and some re-evaluate it, depending on the model and the build. LM Studio has written up KV restore for a matching prefix in its MLX engine. Other MLX apps differ. This page does not name a checkbox in those apps. Check the runtime’s docs.</p>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Brindle &amp; Quill, Northwharf Studio, Ashwick, and the contract are fiction. The waits other than 76.8s and 0.34–1.19s are simulated.</p>
+    <p>Source: <a href="https://x.com/CerebralCoding_/status/2120803634833137891">@CerebralCoding_ on prefix reuse in TensorFold</a>. llama.cpp server reference: <a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md">the server README</a> (<code>cache_prompt</code>, <code>id_slot</code>, <code>--cache-prompt</code>).</p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
