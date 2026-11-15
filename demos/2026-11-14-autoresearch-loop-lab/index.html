@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Autoresearch Loop Lab — Bookmark Lab</title>
+<meta name="description" content="A phone-friendly simulation of an overnight keep-or-discard loop for a fictional dental office. A locked check, a check that cannot fail, and a leaky check.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231f4f48'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Simulation · Maple Street Dental</p>
+    <h1>Autoresearch Loop Lab</h1>
+    <p class="lede">Maple Street Dental is a made-up neighborhood office. Empty chairs are the problem, so the desk wants a second text for the visits most likely to be missed. An agent tries one tweak per round. A check it does not control decides whether the tweak stays.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/EXM7777/status/2120609647388479752">@EXM7777</a> (Machina), 11 Nov 2026:</p>
+    <blockquote>remember when Andrej Karpathy released autoresearch, where an agent runs experiments in a loop on its own?</blockquote>
+    <p class="source">The first instruction in that post:</p>
+    <blockquote>writes a check that can actually fail, first</blockquote>
+  </header>
+
+  <section class="caveat" aria-label="What this page is and is not">
+    <p><strong>A seeded simulation, not a clinic and not a trained model.</strong> The visits, chart numbers, and scores are fiction, drawn once from seed 20261121. About 40% of these made-up visits are misses, which is higher than a real office, so the bars are easy to read. Nothing here is a patient, a chart, or dental advice. The page does not call a network.</p>
+    <noscript>
+      <p>JavaScript plays the loop. Without it, the lesson is this. Give the agent one file to edit and a check it cannot edit. Score chairs saved per 100 visits: no-shows you flagged, minus half a point for each person you double-confirmed who showed up. Higher is better. Flagging every slot scores 12.3 on the locked pile. The starting rule scores 17.1, so the check can fail. Keep a tweak only when the score rises, and discard it otherwise, including a tie. A locked hold-out keeps three real features and discards the rest, and next month rises with it, from 10.8 to 18.8. A check that grades the same pile the agent can read passes every round: the reported score climbs to 41.9 while next month plateaus at 18.8 and then drops to 0. A check that peeks at whether the chair was already empty jumps from 24.6 to 41.5, then next month falls to 0 because that column is blank before the visit. Write the failing check first. Each experiment has a fixed time budget. At 5 minutes, 8 hours fits 96 experiments.</p>
+    </noscript>
+  </section>
+
+  <section class="explainer" aria-labelledby="loop-title">
+    <h2 id="loop-title">The loop, in one night</h2>
+    <p>In <a href="https://github.com/karpathy/autoresearch">autoresearch</a>, the agent may edit one file, <code>train.py</code>. It trains for a fixed 5 minutes. <code>prepare.py</code>, which the agent does not edit, prints <code>val_bpb</code>. Lower is better. A better score stays. An equal or worse score is thrown away with git reset. The person edits <code>program.md</code>, then can leave. Five minutes is about 12 experiments an hour, and about 100 over a night of sleep.</p>
+    <p>This page runs that shape on a no-show rule. The metric here is higher-is-better, because a saved chair is the thing the desk counts. The budget slider is the same idea as the fixed 5 minutes: the agent does not get a longer run just because a tweak is slow.</p>
+  </section>
+
+  <section aria-labelledby="check-title">
+    <h2 id="check-title">Three ways to grade a tweak</h2>
+    <div class="segment" role="group" aria-label="Check mode">
+      <button type="button" id="mode-locked" aria-pressed="true">
+        <span class="toggle-title">Locked hold-out</span>
+        <span class="toggle-detail">The check lives in a file the agent cannot edit. Some tweaks are discarded. Next month rises slowly with the kept rule.</span>
+      </button>
+      <button type="button" id="mode-self" aria-pressed="false">
+        <span class="toggle-title">Agent grades itself</span>
+        <span class="toggle-detail">The check scores the pile the agent can read. Every tweak in this list passes. Next month plateaus, then drops.</span>
+      </button>
+      <button type="button" id="mode-leaky" aria-pressed="false">
+        <span class="toggle-title">Leaky check</span>
+        <span class="toggle-detail">The check can see a column filled in after the visit. The score jumps, then collapses on visits that have not happened.</span>
+      </button>
+    </div>
+    <p class="hint" id="mode-note"></p>
+  </section>
+
+  <section aria-labelledby="budget-title">
+    <h2 id="budget-title">Fixed time budget</h2>
+    <label class="slider-label" for="minutes">Minutes per experiment <span id="minutes-readout">5 minutes</span></label>
+    <input id="minutes" type="range" min="1" max="60" step="1" value="5" aria-valuemin="1" aria-valuemax="60" aria-valuenow="5" aria-valuetext="5 minutes per experiment">
+    <div class="ticks" aria-hidden="true"><span>1 min</span><span>60</span></div>
+
+    <label class="slider-label" for="hours">Hours overnight <span id="hours-readout">8 hours</span></label>
+    <input id="hours" type="number" min="1" max="12" step="1" value="8" inputmode="numeric" autocomplete="off" aria-describedby="budget-note">
+    <p class="hint" id="budget-note"></p>
+  </section>
+
+  <section class="hero" aria-labelledby="night-title">
+    <h2 id="night-title">One night of experiments</h2>
+    <button type="button" class="toggle" id="reveal" aria-pressed="false" aria-describedby="reveal-detail">
+      <span class="box" aria-hidden="true"></span>
+      <span class="toggle-copy">
+        <span class="toggle-title">Show next month's real no-shows</span>
+        <span class="toggle-detail" id="reveal-detail">Hidden until you turn this on. It is the kept rule, scored on visits the check never saw.</span>
+      </span>
+    </button>
+
+    <div class="scores" id="scores"></div>
+
+    <div class="transport" role="group" aria-label="Play the night">
+      <button type="button" id="run" aria-pressed="false">Run</button>
+      <button type="button" id="step">Step</button>
+      <button type="button" id="reset">Reset</button>
+    </div>
+    <p class="slider-label" id="speed-label">Speed</p>
+    <div class="segment speed" role="group" aria-labelledby="speed-label">
+      <button type="button" id="speed-slow" aria-pressed="false">Slow</button>
+      <button type="button" id="speed-normal" aria-pressed="true">Normal</button>
+      <button type="button" id="speed-fast" aria-pressed="false">Fast</button>
+    </div>
+    <p class="hint" id="play-note"></p>
+    <p class="status" id="status" aria-live="polite"></p>
+
+    <h3 id="chart-title">Best score kept so far</h3>
+    <div class="chart-wrap">
+      <svg id="chart" viewBox="0 0 360 220" role="img" aria-labelledby="chart-title chart-desc"></svg>
+      <p class="sr" id="chart-desc"></p>
+    </div>
+    <ul class="legend" id="legend">
+      <li><i class="swatch reported" aria-hidden="true"></i> Best score on the check</li>
+      <li id="legend-fresh" hidden><i class="swatch fresh" aria-hidden="true"></i> Next month, the rule you would ship</li>
+    </ul>
+    <p class="caption" id="chart-caption"></p>
+
+    <h3 id="log-title">Morning log</h3>
+    <div class="table-wrap">
+      <table class="log" id="log">
+        <caption class="sr">Round, tweak, score on the check, and keep or discard</caption>
+        <thead>
+          <tr>
+            <th scope="col">Round</th>
+            <th scope="col">Tweak</th>
+            <th scope="col">Score</th>
+            <th scope="col">Call</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="caption">Round 0 is the rule before the loop. Later rows are the morning log. KEEP means the check score went strictly up. A tie is DISCARD, same as an equal <code>val_bpb</code> in autoresearch.</p>
+  </section>
+
+  <section aria-labelledby="piles-title">
+    <h2 id="piles-title">Three piles, split before the loop</h2>
+    <p>Each pile has 260 made-up visits. The agent may read one pile. The locked check scores a different pile. Next month is a third pile, and it is not in either check. The miss rates on this seed are <span id="rates">about 42%, 42%, and 40%</span>.</p>
+    <ul class="facts" id="samples"></ul>
+    <details>
+      <summary>How a visit gets points</summary>
+      <ul class="facts" id="rules"></ul>
+    </details>
+  </section>
+
+  <section aria-labelledby="try-title">
+    <h2 id="try-title">Try it in under an hour</h2>
+    <p>You can rehearse the loop on a small script before you point an agent at a real training run. Write the check, prove a bad rule fails it, then let the agent edit one file. The block below is an illustrative template written for this demo. It is not copied from the autoresearch repo.</p>
+    <pre class="file"># program.md
+# Illustrative template for this demo.
+# Not copied from karpathy/autoresearch.
+
+You may edit only no-show.js.
+That file is the rule for who gets a second text.
+
+You may not edit check.js. The check is locked.
+Run it with:
+
+    node check.js
+
+The metric is desk_score, printed by check.js.
+Higher is better.
+It counts chairs saved per 100 visits on a locked pile.
+A false double-confirm costs half a saved chair.
+Flagging every visit must score worse than the starting rule.
+If it does not, stop and fix the check before any experiment.
+
+After each run:
+- If desk_score is strictly higher than the best kept score, keep the commit.
+- Otherwise run git reset --hard back to the last keep.
+- A tie is a discard.
+
+Each experiment stops at 5 minutes.
+Do not lengthen the budget to make a run look better.
+Do not stop the loop to ask whether to continue.
+
+The first thing you do is write the check, and make sure it can fail.</pre>
+    <p class="hint">An hour is enough to write <code>check.js</code>, run the flag-every-slot rule by hand, and watch one keep and one discard. The overnight budget on this page is the part you leave running after that.</p>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Maple Street Dental, the chart numbers, and the visits are fiction. Scores use seed 20261121. This page does not train a model.</p>
+    <p>Source: <a href="https://x.com/EXM7777/status/2120609647388479752">@EXM7777 on writing a check that can fail</a>. The loop that post points at: <a href="https://github.com/karpathy/autoresearch">karpathy/autoresearch</a>.</p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
