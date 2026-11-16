@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Streaming voice-to-UI — Ember &amp; Oak Coffee — Bookmark Lab</title>
+<meta name="description" content="A phone-friendly illustration of streaming a coffee order onto a ticket from partial speech, for the fictional shop Ember &amp; Oak Coffee. No model, no account, no upload.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%236f3b24'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Illustration · Ember &amp; Oak Coffee</p>
+    <h1>Streaming voice-to-UI</h1>
+    <p class="lede">Ember &amp; Oak Coffee is a made-up neighborhood shop. The ticket should fill in while the sentence is still going, instead of waiting for the end of the utterance, a model call, and then a render.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/kunalabcdani/status/2119892841723990319">@kunalabcdani</a>, 9 Nov 2026:</p>
+    <blockquote>What if we could manipulate UI at the speed of thought? Built this voice coffee ordering system with @typesafeai Jev. The drink and any updates show up while I'm still mid-sentence, ~200 ms from word to screen.</blockquote>
+  </header>
+
+  <section class="caveat" aria-label="What this page is and is not">
+    <p><strong>An illustration of that technique, not Jev.</strong> The post says a voice coffee order built with Jev shows the drink and its updates mid-sentence, about 200 ms from word to screen. This page does not use Jev, does not call a model, and does not measure that 200 ms. The streaming column applies a small deterministic parser on the same turn as the word. Ember &amp; Oak Coffee, the menu, and the order are fiction. The microphone is optional. The sample and the text box stay in the browser.</p>
+    <noscript>
+      <p>JavaScript runs the sample, the text box, and the microphone. Without it, the lesson is this. The sample sentence is “a large oat latte, actually make it iced, and um, no, medium, plus a croissant.” At 150 words per minute the word latte arrives at 1.2 seconds, and the sentence continues until 5.6 seconds. Streaming can put the drink on the ticket at 1.2 seconds, while the customer is still talking. End of turn waits for 700 milliseconds of silence, then a model delay. The delay slider runs from 300 to 3,000 milliseconds and starts at 1,200. With that default the drink appears at 7.5 seconds, which is 6,300 milliseconds after the word latte. A scripted recognizer rewrite changes “a large oat latte” into “I'll have a large oat latte”. Re-deriving the ticket from the full partial transcript keeps one iced medium oat latte and a croissant. Naive append mode adds a second latte, because it treats the rewritten hypothesis as new speech. Patches have to be reversible: actually, no, make that, instead, and scratch that.</p>
+    </noscript>
+  </section>
+
+  <section class="explainer" aria-labelledby="idea-title">
+    <h2 id="idea-title">Patch the ticket on the partial transcript</h2>
+    <p>A turn-based flow waits until the person stops, sends the whole sentence, and paints once. The drink was named in the first few words. Streaming reads each interim hypothesis and updates a structured ticket immediately. Corrections (“actually”, “no”, “make that”, “instead”, “scratch that”) rewrite that same ticket. Both columns below hear the same words.</p>
+  </section>
+
+  <section aria-labelledby="try-controls">
+    <h2 id="try-controls">Say an order</h2>
+    <p id="sentence">Sample: “a large oat latte, actually make it iced, and um, no, medium, plus a croissant.”</p>
+    <div class="transport" role="group" aria-label="Sample and reset">
+      <button type="button" id="play" aria-pressed="false">Play sample utterance</button>
+      <button type="button" id="reset">Reset ticket</button>
+    </div>
+    <p class="slider-label" id="speed-label">Playback</p>
+    <div class="segment speed" role="group" aria-labelledby="speed-label">
+      <button type="button" id="speed-normal" aria-pressed="true">Speaking pace</button>
+      <button type="button" id="speed-fast" aria-pressed="false">Fast</button>
+    </div>
+    <p class="hint" id="play-note"></p>
+
+    <label for="utterance">Type an order, word by word</label>
+    <textarea id="utterance" rows="3" placeholder="a large oat latte, actually make it iced" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+
+    <div class="transport one" role="group" aria-label="Microphone">
+      <button type="button" id="mic" aria-pressed="false">Start microphone</button>
+    </div>
+    <p class="hint" id="mic-note">The microphone is optional. SpeechRecognition is off until you press the button.</p>
+
+    <p class="heard" id="heard"></p>
+    <p class="hint" id="rewrite-note" hidden></p>
+    <p class="status" id="status" aria-live="polite"></p>
+  </section>
+
+  <section aria-labelledby="gap-title">
+    <h2 id="gap-title">Word to screen</h2>
+    <label class="slider-label" for="latency">Simulated model latency <span id="latency-readout">1,200 ms</span></label>
+    <input id="latency" type="range" min="300" max="3000" step="100" value="1200" aria-valuemin="300" aria-valuemax="3000" aria-valuenow="1200" aria-valuetext="1,200 milliseconds">
+    <div class="ticks" aria-hidden="true"><span>300 ms</span><span>3,000</span></div>
+    <p class="hint" id="latency-note">End of turn waits for 700 ms of silence, then this delay. Streaming does not.</p>
+
+    <div class="scores" id="scores"></div>
+    <p id="gap-note"></p>
+
+    <h3 id="timeline-title">Same sentence, two paint times</h3>
+    <div class="timeline">
+      <div class="bar" id="bar" role="img" aria-labelledby="timeline-title" aria-describedby="timeline-desc">
+        <span class="mark stream" id="mark-stream"></span>
+        <span class="mark speech" id="mark-speech"></span>
+        <span class="mark end" id="mark-end"></span>
+      </div>
+      <ul class="legend" aria-hidden="true">
+        <li><i class="swatch stream"></i> Streaming shows the drink</li>
+        <li><i class="swatch speech"></i> Last word</li>
+        <li><i class="swatch end"></i> End of turn shows the drink</li>
+      </ul>
+      <p class="sr" id="timeline-desc"></p>
+    </div>
+
+    <h3 id="changes-title">Word-to-screen latency per change</h3>
+    <div class="table-wrap">
+      <table class="gaps" id="gaps">
+        <caption id="gaps-caption">Streaming paints on the word. End of turn paints once, after silence and the model delay.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Change</th>
+            <th scope="col">Streaming</th>
+            <th scope="col">End of turn</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="gotcha-title">
+    <h2 id="gotcha-title">Why the patch has to be reversible</h2>
+    <div class="segment" role="group" aria-label="How streaming applies a hypothesis">
+      <button type="button" id="mode-rederive" aria-pressed="true">
+        <span class="toggle-title">Re-derive from the full partial transcript</span>
+        <span class="toggle-detail">Each interim result replaces the ticket. The same words always make the same order.</span>
+      </button>
+      <button type="button" id="mode-naive" aria-pressed="false">
+        <span class="toggle-title">Naive append mode</span>
+        <span class="toggle-detail">New items are pushed onto the ticket. A rewrite of earlier words adds them again.</span>
+      </button>
+    </div>
+    <p id="gotcha-copy">Speech recognizers rewrite earlier words in place. They do not only add text at the end. Naive append mode treats a rewritten hypothesis as new speech, so when “a large oat latte” becomes “I'll have a large oat latte” it adds a second latte. Re-deriving from the full partial transcript builds the ticket again from the words now in hand, and the same words always make the same order.</p>
+    <p class="hint" id="gotcha-count"></p>
+  </section>
+
+  <section aria-labelledby="tickets-title">
+    <h2 id="tickets-title">The ticket, both ways</h2>
+    <div class="columns">
+      <section class="column" aria-labelledby="stream-title">
+        <h3 id="stream-title">Streaming</h3>
+        <p class="hint">Patches on every interim word.</p>
+        <article class="ticket stream" id="stream-ticket"></article>
+        <h3 class="log-title">Patch log</h3>
+        <ol class="patches" id="stream-log"></ol>
+      </section>
+      <section class="column" aria-labelledby="end-title">
+        <h3 id="end-title">End of turn</h3>
+        <p class="hint">One parse after 700 ms of silence and the model delay.</p>
+        <article class="ticket end" id="end-ticket"></article>
+        <h3 class="log-title">Patch log</h3>
+        <ol class="patches" id="end-log"></ol>
+      </section>
+    </div>
+  </section>
+
+  <section aria-labelledby="menu-title">
+    <h2 id="menu-title">What the counter can hear</h2>
+    <ul class="facts">
+      <li>Drinks: latte, cortado, cold brew, chai, matcha.</li>
+      <li>Sizes: small, medium, large. Hot or iced. Cold brew starts iced.</li>
+      <li>Milk: whole, oat, almond, skim, soy. Extra shot.</li>
+      <li>Syrups: vanilla, caramel, hazelnut.</li>
+      <li>Pastries: croissant, muffin, scone, banana bread.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="why-title">
+    <h2 id="why-title">Why this matters for a small business</h2>
+    <p>On a drive-thru headset, at the counter, or on a phone order, the drink is named early and then corrected. If the ticket waits for silence and a model round trip, the person on the register looks at a blank screen while the line moves. If the ticket fills in as the words arrive, they can read the drink back and confirm it before anyone is charged. The correction still has to land on the same cup.</p>
+  </section>
+
+  <section aria-labelledby="hour-title">
+    <h2 id="hour-title">Try it in under an hour</h2>
+    <p>You can see the shape of this in one page, in Chrome or Safari. <code>webkitSpeechRecognition</code> with <code>interimResults</code> hands you a new hypothesis while the person is still talking. Parse that whole string and replace the ticket. Do not append. Firefox has no SpeechRecognition; the text box on this page is the stand-in. The block below is an illustrative starter written for this demo. It is not Jev, and it does not call a model.</p>
+    <button type="button" id="copy">Copy snippet</button>
+    <p class="hint" id="copy-note"></p>
+    <pre class="file" id="snippet">// Illustrative starter for a counter ticket.
+// Not Jev, and not a model.
+// Re-derive on every interim result. Do not append.
+// Interim hypotheses rewrite earlier words.
+
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const hear = new SR();
+hear.interimResults = true;
+hear.continuous = true;
+hear.lang = "en-US";
+
+function parseTranscript(text) {
+  const words = text.toLowerCase().replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean);
+  const joined = words.join(" ");
+  const drinks = ["cold brew", "latte", "cortado", "chai", "matcha"];
+  const drink = drinks.find((name) => joined.indexOf(name) !== -1) || null;
+  const size = ["small", "medium", "large"].find((name) => words.indexOf(name) !== -1) || null;
+  const milk = ["oat", "almond", "whole", "skim", "soy"].find((name) => words.indexOf(name) !== -1) || null;
+  const iced = words.indexOf("iced") !== -1 || words.indexOf("ice") !== -1;
+  return { drink: drink, size: size, milk: milk, temp: drink ? (iced ? "iced" : "hot") : null };
+}
+
+function render(order) {
+  let slot = document.querySelector("#ticket");
+  if (!slot) {
+    slot = document.createElement("p");
+    slot.id = "ticket";
+    document.body.appendChild(slot);
+  }
+  const bits = [order.size, order.temp, order.milk, order.drink].filter(Boolean);
+  slot.textContent = bits.length ? bits.join(" ") : "Listening…";
+}
+
+hear.onresult = (event) => {
+  let text = "";
+  for (const result of event.results) text += result[0].transcript;
+  render(parseTranscript(text));
+};
+
+hear.start();</pre>
+    <p class="hint">An hour is enough to show one drink on a page, then teach the parser “actually”, “no”, “make that”, “instead”, and “scratch that”. The side-by-side wait on this page is the part to time with a slider after that.</p>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Ember &amp; Oak Coffee, the menu, and the order are fiction. This page does not call a model.</p>
+    <p>Source: <a href="https://x.com/kunalabcdani/status/2119892841723990319">@kunalabcdani on a voice coffee order</a>. The post names Jev. This demo does not reproduce it.</p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
