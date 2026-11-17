@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Will this MoE fit my Mac? — Ledger &amp; Lane Accounting — Bookmark Lab</title>
+<meta name="description" content="A phone-friendly planner that sizes a mixture-of-experts model for one office Mac at the fictional practice Ledger &amp; Lane Accounting. Resident bytes and active params, not the headline count. No network calls.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231f4d3a'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Planner · Ledger &amp; Lane Accounting</p>
+    <h1>Will this MoE fit my Mac?</h1>
+    <p class="lede">Ledger &amp; Lane Accounting is a fictional 6-person accounting practice that wants a private local model on one office Mac so client tax documents never leave the building. The number on the model card is the wrong one to shop with.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/CerebralCoding_/status/2122252697025892538">@CerebralCoding_</a>, 16 Nov 2026, quoting <a href="https://x.com/superalesha/status/2122220065932148876">@superalesha</a>:</p>
+    <blockquote>Your 128GB Mac was never too small for a frontier MoE. The MoEs were too fat. Hy4 flash vs DeepSeek V4.1 Flash, sized for home: Hy4 flash: 224B total, 12B active, about 80GB of real weights at 4-bit. DeepSeek V4.1 Flash: about 290GB of FP4 experts alone. 64B of Hy4 flash is an Engram lookup table, read a few rows per token, so it can sit on the SSD. The rest fits in a 128GB Mac. Tencent puts it level with or above DeepSeek V4.1 Flash on agent tasks. Weights aren't public yet. That's the only thing missing.</blockquote>
+  </header>
+
+  <section class="caveat" aria-label="What this page is and is not">
+    <p><strong>A planner, not a benchmark, and not a copy of either model.</strong> The sizes above are the posts’ figures. Every fit label and every tokens/sec number on this page is a rough back-of-envelope estimate, not a benchmark. The model figures come from the linked posts. Gigabytes here are decimal, 1,000,000,000 bytes, so (224 − 64) × 4 / 8 is 80 GB rather than about 74.5 GiB. Nothing on this page loads a weight, calls a runtime, or leaves the browser. Ledger &amp; Lane Accounting and the tax documents are fiction. No real client is named.</p>
+    <noscript>
+      <p>JavaScript updates the bar. Without it, the default reading is this. Hy4 flash is 224B total, 12B active, and 64B of that total is an Engram lookup. Park the lookup on the SSD and the resident 4-bit weights are (224B − 64B) × 4 bits / 8 = 80 GB. A sketch of 32,768 tokens at 8,192 bytes each adds about 0.27 GB of KV cache. A 128 GB Mac that holds back 25% for the OS and other apps still has about 15.7 GB spare, so the label is FITS. The headline 224B × 4 bits / 8 = 112 GB does not fit that same holdback. Decode follows the active slice, 12B × 4 / 8 = 6 GB per token. At a 400 GB/s stand-in that is about 66.7 tok/s. Those speeds are rough estimates, not benchmarks. DeepSeek V4.1 Flash, about 290 GB of FP4 experts in the posts, does not fit any Mac on this list unless cold experts stream from the SSD, and the posts do not give its active-parameter count. Ledger &amp; Lane Accounting, the fictional 6-person practice, would need the 128 GB tier for the resident Hy4 flash weights.</p>
+    </noscript>
+  </section>
+
+  <section class="explainer" aria-labelledby="posts-title">
+    <h2 id="posts-title">The posts' arithmetic</h2>
+    <p id="canonical">(224B − 64B) × 4 bits / 8 = 80 GB. That is Hy4 flash once the 64B Engram lookup sits on the SSD. The headline 224B × 4 bits / 8 = 112 GB is the wrong number to size a Mac by. Speed follows the 12B that are active: 12B × 4 bits / 8 = 6 GB moved per token.</p>
+    <ul class="facts">
+      <li><strong>Hy4 flash,</strong> from both posts: 224B total, 12B active, 1M context. 64B of the 224B is Engram, DeepSeek’s lookup-table memory, read a few rows per token. The quoted post’s 4-bit line is about 80 GB of real weights, and a 128 GB Mac holds those weights in unified memory. It also lists about 3.2 bits per weight, about 64 GB, for a three-GPU pile. This page’s 3-bit button is 3.0, not 3.2, so it will not match that 64 GB line. 160 × 3.2 / 8 = 64, and 160 × 3 / 8 = 60.</li>
+      <li><strong>DeepSeek V4.1 Flash:</strong> about 290 GB of FP4 experts alone, and the quoted post says that is before Engram. 290 × 8 / 4 = 580B is this page’s conversion so the same formula can run. It is not a parameter count the posts published. They also do not publish how many parameters are active.</li>
+      <li><strong>KV cache</strong> is a slider, not a model card. The quoted post says hybrid attention plus LatentMoE cuts KV cache to 1/6 of Hy4 and 1/24 of Hy3, so 1M context will not eat VRAM. It does not say bytes per token. The default here is a short office working set, 32,768 tokens, not the 1M maximum.</li>
+      <li><strong>A related bookmark from @ivanfioravanti</strong> is the other switch: run DeepSeek V4.1 Flash on a 32–64 GB Mac by streaming experts from the SSD. This page does not have a status link for that post. The streaming toggle is that idea, drawn as a sketch.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="controls-title">
+    <h2 id="controls-title">Size the model and the Mac</h2>
+    <p class="hint" id="preset-note">Choosing Hy4 flash or DeepSeek V4.1 Flash restores that post’s memory story: lookup on the SSD, experts in RAM. Edit a field and the choice becomes custom.</p>
+
+    <fieldset>
+      <legend>Model preset</legend>
+      <div class="chips" role="group" aria-label="Model preset">
+        <button type="button" id="preset-hy4" data-preset="hy4" aria-pressed="true">Hy4 flash</button>
+        <button type="button" id="preset-deepseek" data-preset="deepseek" aria-pressed="false">DeepSeek V4.1 Flash</button>
+        <button type="button" id="preset-custom" data-preset="custom" aria-pressed="false">Custom</button>
+      </div>
+    </fieldset>
+
+    <div class="fields three">
+      <label class="field" for="total-b">Total params, billions
+        <input id="total-b" type="number" inputmode="decimal" min="1" max="2000" step="1" value="224" autocomplete="off">
+      </label>
+      <label class="field" for="active-b">Active params, billions
+        <input id="active-b" type="number" inputmode="decimal" min="0.1" max="2000" step="0.1" value="12" placeholder="Not in the posts" autocomplete="off">
+      </label>
+      <label class="field" for="lookup-b">Lookup / Engram, billions
+        <input id="lookup-b" type="number" inputmode="decimal" min="0" max="2000" step="1" value="64" autocomplete="off">
+      </label>
+    </div>
+
+    <fieldset>
+      <legend>Quantization</legend>
+      <div class="chips" role="group" aria-label="Quantization in bits">
+        <button type="button" id="bit-16" data-bits="16" aria-pressed="false">16-bit</button>
+        <button type="button" id="bit-8" data-bits="8" aria-pressed="false">8-bit</button>
+        <button type="button" id="bit-6" data-bits="6" aria-pressed="false">6-bit</button>
+        <button type="button" id="bit-4" data-bits="4" aria-pressed="true">4-bit</button>
+        <button type="button" id="bit-3" data-bits="3" aria-pressed="false">3-bit</button>
+      </div>
+      <p class="hint">4-bit is the posts’ Hy4 flash and FP4 figure. Other widths are a what-if on the same parameter counts.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Mac RAM</legend>
+      <div class="chips" role="group" aria-label="Mac memory">
+        <button type="button" id="ram-32" data-ram="32" aria-pressed="false">32 GB</button>
+        <button type="button" id="ram-64" data-ram="64" aria-pressed="false">64 GB</button>
+        <button type="button" id="ram-96" data-ram="96" aria-pressed="false">96 GB</button>
+        <button type="button" id="ram-128" data-ram="128" aria-pressed="true">128 GB</button>
+        <button type="button" id="ram-192" data-ram="192" aria-pressed="false">192 GB</button>
+        <button type="button" id="ram-256" data-ram="256" aria-pressed="false">256 GB</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Memory bandwidth stand-in</legend>
+      <div class="chips" role="group" aria-label="Bandwidth class">
+        <button type="button" id="bw-pro" data-gbps="200" aria-pressed="false">Pro-class, 200 GB/s</button>
+        <button type="button" id="bw-max" data-gbps="400" aria-pressed="true">Max-class, 400 GB/s</button>
+        <button type="button" id="bw-ultra" data-gbps="800" aria-pressed="false">Ultra-class, 800 GB/s</button>
+      </div>
+      <label class="field" for="bandwidth">Edit bandwidth, GB/s
+        <input id="bandwidth" type="number" inputmode="decimal" min="20" max="2000" step="10" value="400" autocomplete="off">
+      </label>
+      <p class="hint">Round class stand-ins, not a spec sheet. Published Pro chips are often cited around 150–273 GB/s, Max chips around 300–546 GB/s, and Ultra chips around 800 GB/s. This page did not measure a Mac.</p>
+    </fieldset>
+
+    <label class="slider-label" for="context">Context <span id="context-readout">32,768 tokens</span></label>
+    <input id="context" type="range" min="4096" max="1048576" step="1024" value="32768" aria-valuemin="4096" aria-valuemax="1048576" aria-valuenow="32768" aria-valuetext="32,768 tokens">
+    <div class="chips jumps" role="group" aria-label="Context jumps">
+      <button type="button" id="ctx-8192" data-context="8192">8,192</button>
+      <button type="button" id="ctx-32768" data-context="32768" aria-pressed="true">32,768</button>
+      <button type="button" id="ctx-131072" data-context="131072">131,072</button>
+      <button type="button" id="ctx-1048576" data-context="1048576">1,048,576</button>
+    </div>
+
+    <label class="slider-label" for="kv-bytes">KV bytes per token <span id="kv-readout">8,192 bytes</span></label>
+    <input id="kv-bytes" type="range" min="1024" max="524288" step="1024" value="8192" aria-valuemin="1024" aria-valuemax="524288" aria-valuenow="8192" aria-valuetext="8,192 bytes per token">
+    <div class="ticks" aria-hidden="true"><span>1,024</span><span>524,288</span></div>
+    <p class="hint">KV cache ≈ context × bytes per token. A plain grouped-query sketch is often a few hundred kilobytes per token. Hy4’s hybrid cache is reported smaller. Move the slider if you want the long context to show up in the bar.</p>
+
+    <fieldset>
+      <legend>OS and apps holdback</legend>
+      <div class="chips" role="group" aria-label="Memory held back for the OS and apps">
+        <button type="button" id="head-20" data-headroom="0.2" aria-pressed="false">Hold back 20%</button>
+        <button type="button" id="head-25" data-headroom="0.25" aria-pressed="true">Hold back 25%</button>
+      </div>
+      <p class="hint">TIGHT means it fits, and the spare room after this holdback is under 8 GB or under 8% of the Mac, whichever is larger.</p>
+    </fieldset>
+
+    <label class="check" for="lookup-ssd">
+      <input id="lookup-ssd" type="checkbox" checked>
+      <span>Keep lookup memory on the SSD. Engram is read a few rows per token, so the posts say it can sit on the drive.</span>
+    </label>
+    <label class="check" for="stream-experts">
+      <input id="stream-experts" type="checkbox">
+      <span>Stream cold experts from the SSD. Only the active weights stay resident. Decode takes the SSD penalty below. This is the 32–64 GB idea from @ivanfioravanti, as a sketch.</span>
+    </label>
+    <label class="field" for="ssd">SSD read stand-in, GB/s
+      <input id="ssd" type="number" inputmode="decimal" min="0.5" max="20" step="0.5" value="5" autocomplete="off">
+    </label>
+    <p class="hint">5 GB/s is a round sequential stand-in for a recent Mac SSD. Small expert reads are often slower, so the streamed tokens/sec can be optimistic even as a floor-shaped sketch.</p>
+  </section>
+
+  <section class="result" aria-labelledby="verdict-title">
+    <h2 id="verdict-title">Does it fit?</h2>
+    <p id="verdict" class="verdict fit">FITS</p>
+    <p id="why">FITS. Resident weights are (224 − 64) billion × 4 bits ÷ 8 = 80 GB, plus 0.27 GB of KV cache. A 128 GB Mac reserves 32 GB, leaving 96 GB. 15.7 GB is spare.</p>
+
+    <div class="meter" id="meter">
+      <div class="meter-bar" id="meter-bar" role="img" aria-labelledby="why"></div>
+      <div class="meter-mark" id="meter-mark" aria-hidden="true"><span id="meter-mark-label">128 GB</span></div>
+    </div>
+    <ul class="legend" id="legend" aria-hidden="true">
+      <li><i class="swatch resident"></i> Resident weights</li>
+      <li><i class="swatch kv"></i> KV cache</li>
+      <li><i class="swatch holdback"></i> OS and apps</li>
+      <li><i class="swatch spare"></i> Spare</li>
+      <li><i class="swatch overflow"></i> Past the Mac</li>
+    </ul>
+    <p class="hint">The bar is the Mac when the stack ends at the RAM line. When it does not fit, the red piece continues past that line. A very thin piece is drawn a few pixels wide so the color stays visible.</p>
+    <ul class="parts" id="parts"></ul>
+
+    <h3 id="scenario-title">Which Mac for the practice</h3>
+    <div class="scenario" id="scenario">
+      <p>Ledger &amp; Lane Accounting is a fictional 6-person accounting practice that wants a private local model on one office Mac so client tax documents never leave the building. One computer in the office. No return is uploaded anywhere.</p>
+      <p id="scenario-line"></p>
+      <p class="hint">The quoted post says the 4-bit Hy4 flash weights fit in 96 GB of VRAM, with room for context, and that a 128 GB Mac holds them in unified memory. VRAM in that line is not also running the office. With 20–25% held back, the same 80 GB does not fit a 96 GB Mac.</p>
+      <div class="chips" id="tiers" role="group" aria-label="Fit at each Mac size"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="speed-title">
+    <h2 id="speed-title">Decode, roughly</h2>
+    <p class="banner" id="estimate-banner">Rough back-of-envelope estimate, not a benchmark. The model figures come from the linked posts.</p>
+    <p id="tok" class="tok">66.7 tok/s</p>
+    <p id="speed-line"></p>
+    <p class="hint">tokens/sec ≈ bandwidth ÷ (active params × bits / 8). Engram is not in that divisor. The posts say it is a few rows per token, not a scan of the whole lookup table. Streaming replaces memory bandwidth with the SSD stand-in for the whole active read. That is the harsh end. A runtime that keeps hot experts in RAM will beat it.</p>
+  </section>
+
+  <section aria-labelledby="gotcha-title">
+    <h2 id="gotcha-title">The gotcha</h2>
+    <p id="gotcha"></p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section aria-labelledby="try-title">
+    <h2 id="try-title">Try it yourself</h2>
+    <p>On a machine you control, a quantized local runtime is how you would check a real file. This page does not run either command. Hy4 flash weights are not public yet. The bookmarked post says that is the only missing piece, so there is no Hy4 file to point these at today. Flag names move. Read the README for the version you install. <code>Q4_K_M</code> is a 4-bit-class GGUF quant, not exactly 4.0 bits on every tensor. The 4-bit button above is the plain bits/8 sketch.</p>
+    <button type="button" id="copy">Copy snippet</button>
+    <p class="hint" id="copy-note"></p>
+    <pre class="file" id="snippet"># Sketch of a local run. Not a benchmark, and not a download.
+# Hy4 flash weights are not public yet.
+
+# llama.cpp, after you have a GGUF you are allowed to use.
+# -ngl 99 asks for as many layers as the GPU path will take.
+llama-cli -m ./model-Q4_K_M.gguf -c 32768 -ngl 99
+
+# MLX on Apple Silicon, after a 4-bit conversion.
+mlx_lm.generate --model ./model-4bit --max-tokens 128</pre>
+    <p class="hint">llama.cpp’s quantize tool builds a GGUF such as Q4_K_M. MLX’s convert path has a 4-bit quantize option. Streaming cold experts from an SSD is a separate runtime feature. This page does not invent a flag for it. Check the docs before you rely on a default. Keep the practice’s documents on that Mac.</p>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Ledger &amp; Lane Accounting is fiction. Fit labels and tokens/sec figures are rough back-of-envelope estimates, not benchmarks. The model figures come from the linked posts.</p>
+    <p>Sources: <a href="https://x.com/CerebralCoding_/status/2122252697025892538">@CerebralCoding_ on a 128GB Mac and a fat MoE</a>, quoting <a href="https://x.com/superalesha/status/2122220065932148876">@superalesha on Hy4 flash and Engram</a>. Local runtimes, for the snippet only: <a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a> and <a href="https://github.com/ml-explore/mlx-lm">MLX LM</a>.</p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
