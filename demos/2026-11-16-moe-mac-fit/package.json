@@ -1,0 +1,8 @@
+{
+  "name": "moe-mac-fit",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test check.js"
+  }
+}
