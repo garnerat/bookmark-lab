@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Growth timeline detective — Riverbend Supply Co. — Bookmark Lab</title>
+<meta name="description" content="A phone-friendly walkthrough of lining up fictional organic traffic with dated public signals for Riverbend Supply Co., a made-up camping and outdoor cookware shop. No network calls.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231e4d3a'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Fictional example · Riverbend Supply Co.</p>
+    <h1>Growth timeline detective</h1>
+    <p class="lede">Riverbend Supply Co. is a made-up online shop that sells camping and outdoor cookware. A competitor wants to know how its Google traffic grew. This page lines up 24 months of fictional organic visits and brand searches with dated signals, then lists what sat next to each jump.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/coreyhainesco/status/2120509394224095603">@coreyhainesco</a> (Corey Haines), 11 Nov 2026:</p>
+    <blockquote>The biggest thing I've shipped since Marketing Skills itself! skill: /reverse-engineer-marketing — see how any company actually grew using public data. Give it a domain and it: Charts their monthly Google traffic and brand searches. Dates every launch, price change, ad…</blockquote>
+    <p class="source">The post continues from that opening. The skill lives in the public <a href="https://github.com/coreyhaines31/marketingskills/tree/main/skills/reverse-engineer-marketing">marketingskills</a> repo. This page does not run that skill, does not copy it, and does not call traffic, ad, or AI services. It is a static demo of the technique: mark months where traffic steps up, and treat nearby signals as candidate causes.</p>
+  </header>
+
+  <section class="caveat" aria-label="What this page is and is not">
+    <p><strong>Fictional example data.</strong> Every visit count, brand search, headline, price, ad, sitemap total, job post, tool install, and AI citation on this page was written for riverbend.example. The organic line is a camping season laid on a planted base: flat through August 2025, higher from September 2025, higher again from August 2026. December 2025 spikes for one month and gives it back. The March 2026 job post does not move that base. Correlation isn't causation.</p>
+    <noscript>
+      <p>JavaScript draws the chart and applies the sliders. Without it, the planted story is this. Organic visits jump in April 2025 and again in April 2026 because camp cooking peaks in spring. They step up in September 2025 next to a new homepage headline and a larger sitemap, spike in December 2025 while a gift ad is running, then fall back in January. They step up again in August 2026 next to a kettle price cut, a new ad, a new headline, AI-answer citations, and more pages. A warehouse job post dated March 2026 sits beside the second April jump. Comparing April with April a year earlier shrinks that jump. The August step does not shrink.</p>
+    </noscript>
+  </section>
+
+  <section aria-labelledby="chart-title">
+    <h2 id="chart-title">Twenty-four fictional months</h2>
+    <p>The green line is organic visits, on the left axis. The blue line is brand searches, on the right axis. They are not the same scale. Ember marks a step. Dots under the chart are the signals you have switched on.</p>
+
+    <div class="chart-scroll" id="chart-scroll" tabindex="0" aria-label="Traffic chart, swipe sideways on a small screen">
+      <p class="swipe-hint">Swipe the chart to see all 24 months.</p>
+      <svg id="chart" class="chart" role="group" aria-label="Organic visits, brand searches, and signal dots"></svg>
+    </div>
+    <ul class="legend" id="legend">
+      <li><i class="swatch organic" aria-hidden="true"></i> Organic visits</li>
+      <li><i class="swatch brand" aria-hidden="true"></i> Brand searches</li>
+      <li><i class="swatch step" aria-hidden="true"></i> Marked step</li>
+    </ul>
+    <p class="reading" id="chart-caption"></p>
+    <div class="month-card" id="month-card" aria-live="polite"></div>
+
+    <label class="slider-label" for="sensitivity">Step sensitivity <span id="sensitivity-readout">30% jump</span></label>
+    <input id="sensitivity" type="range" min="15" max="80" step="1" value="30" aria-valuemin="15" aria-valuemax="80" aria-valuenow="30" aria-valuetext="30 percent jump">
+    <div class="ticks" aria-hidden="true"><span>15%</span><span>80%</span></div>
+
+    <label class="slider-label" for="window">Cause window <span id="window-readout">±1 month</span></label>
+    <input id="window" type="range" min="0" max="3" step="1" value="1" aria-valuemin="0" aria-valuemax="3" aria-valuenow="1" aria-valuetext="plus or minus 1 month">
+    <div class="ticks" aria-hidden="true"><span>Same month</span><span>±3 months</span></div>
+
+    <button type="button" class="toggle" id="seasonal" aria-pressed="false">
+      <span class="box" aria-hidden="true"></span>
+      <span class="toggle-copy">
+        <span class="toggle-title">Seasonality adjust</span>
+        <span class="toggle-detail" id="seasonal-detail">Off. A jump is this month versus the prior 3-month mean. Turn this on to divide by the same comparison from a year earlier.</span>
+      </span>
+    </button>
+
+    <fieldset>
+      <legend>Signal types</legend>
+      <div class="chips" role="group" aria-label="Signal types" id="type-toggles"></div>
+    </fieldset>
+    <p class="hint">Turning a type off hides it on the chart and in the candidate lists. The traffic steps stay. A step is a month that beats the prior 3-month mean by at least the sensitivity, and whose next month keeps at least a third of that gain. A one-month spike, such as the fictional December ads, does not count. Nearby qualifying months collapse to the largest jump.</p>
+    <button type="button" id="reset">Reset sliders and signals</button>
+  </section>
+
+  <section aria-labelledby="steps-title">
+    <h2 id="steps-title">Steps and candidate causes</h2>
+    <p>Each card is a marked step. Candidates are enabled signals inside the window, closest first. Same-month signals are a cluster: closeness does not prove which one did the work.</p>
+    <div id="steps"></div>
+  </section>
+
+  <section class="gotcha" aria-labelledby="gotcha-title">
+    <h2 id="gotcha-title">Correlation isn't causation</h2>
+    <p>One seeded coincidence: a job post for a seasonal warehouse associate is dated March 2026, next to the April 2026 traffic jump. April 2025 jumped by about the same percent, with no job post beside it. April 2026 has more visits because the September step stayed, but the percent jump is the camping season. Seasonality adjust compares this April with last April, using the same 3-month test. The step shrinks. Hiring a warehouse associate for the busy season did not create the camping season.</p>
+    <p>Brand searches barely move in April. They climb hard in August 2026, when the fictional ads and AI answers name the shop. The August step moves the other way under the seasonal toggle: August 2025 was a fade after summer, so beating last August makes that jump larger.</p>
+    <p id="gotcha-live"></p>
+  </section>
+
+  <section aria-labelledby="log-title">
+    <h2 id="log-title">Signal log</h2>
+    <p class="hint">Every dot on the chart, in date order. Hidden types stay in the list so you can see what you turned off.</p>
+    <ol class="log" id="log"></ol>
+  </section>
+
+  <section aria-labelledby="try-title">
+    <h2 id="try-title">Try this on a real competitor (free sources)</h2>
+    <p>These are text links. This page does not query them. Read each site's terms, and label an estimate as an estimate.</p>
+    <ul class="sources">
+      <li><a href="https://web.archive.org/">Wayback Machine</a> — open their homepage across months and write down headline changes.</li>
+      <li><a href="https://www.sitemaps.org/protocol.html">The site's /sitemap.xml</a> — append <code>/sitemap.xml</code> to their domain, and follow any sitemap index. Count URLs, and note when new sections appear.</li>
+      <li><a href="https://www.facebook.com/ads/library/">Meta Ad Library</a> — search the advertiser. Note when an ad started and, if the library shows it, when it stopped.</li>
+      <li><a href="https://trends.google.com/trends/">Google Trends</a> — compare a brand query with a category query, monthly, so a seasonal category does not get mistaken for a brand win.</li>
+      <li><a href="https://chatgpt.com/">ChatGPT</a>, <a href="https://www.perplexity.ai/">Perplexity</a>, and <a href="https://gemini.google.com/">Gemini</a> — ask a buyer's question, such as who they recommend for camp cookware, and write down which brands and pages they name. Ask more than one.</li>
+    </ul>
+  </section>
+
+  <details class="table-wrap">
+    <summary>Monthly fictional numbers</summary>
+    <div class="table-scroll">
+      <table id="numbers">
+        <caption>Planted base, organic visits, and brand searches. All fictional.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Month</th>
+            <th scope="col">Planted base</th>
+            <th scope="col">Organic visits</th>
+            <th scope="col">Brand searches</th>
+            <th scope="col">Step</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </details>
+
+  <footer>
+    <p>Bookmark Lab. Riverbend Supply Co. and riverbend.example are fiction. The visit counts are a camping season times a planted base, not a measurement.</p>
+    <p>Source: <a href="https://x.com/coreyhainesco/status/2120509394224095603">@coreyhainesco on /reverse-engineer-marketing</a>. The public skill is in <a href="https://github.com/coreyhaines31/marketingskills/tree/main/skills/reverse-engineer-marketing">coreyhaines31/marketingskills</a>. This page does not run it.</p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
