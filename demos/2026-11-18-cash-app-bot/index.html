@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cash Applications Bot sandbox — Greenline Commercial Landscaping — Bookmark Lab</title>
+<meta name="description" content="A phone-friendly sandbox of a cash-applications bot for fictional Greenline Commercial Landscaping. Exact matches post, small bank fees write off, and a lookalike remittance domain is refused. No network calls.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231d4a32'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Fictional example · Greenline Commercial Landscaping</p>
+    <h1>Cash Applications Bot sandbox</h1>
+    <p class="lede">Greenline Commercial Landscaping is a made-up company that bills property managers, HOAs, and office parks for grounds work. This page runs one morning payment feed the way a cash-applications bot would: post an exact match, write off a small bank fee, read remittance advice when one payment covers several invoices, and stop when a sender’s domain is not an exact match.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/bot/status/2122771386456551516">@bot</a>, 18 Nov 2026, and the write-up <a href="https://x.ai/news/grok-bot-accounting">Building an accounting team with Grok Bot</a>:</p>
+    <blockquote>The Bot checks our payment feed twice daily and automatically applies payments that match outstanding invoices exactly. When a payment doesn’t match, it searches for remittance advice that can help identify which invoices the payment covers. This process ordinarily takes an accountant three to four hours. The Bot completes it in roughly 30 minutes.</blockquote>
+    <p class="source">The write-up gives each bot one job: Provisioning, Billing, Billing Support, Cash Applications, and Collections. A bot reads an operating manual it cannot edit. Low-risk work runs on its own. Credits, refunds, and write-offs above a limit wait for a designated person. A customer-facing check treats a similar-looking email domain as a reason to escalate. Onboarding is about three weeks: watch, then propose, then do the routine work.</p>
+  </header>
+
+  <section class="caveat" aria-label="What this page is and is not">
+    <p><strong>Fictional books, plain rules.</strong> Every customer, invoice, payment, and email was written for this page. Nothing here is a real business or a real person. The rules are ordinary JavaScript in the browser. There is no model call, no network request, and no connection to a bank.</p>
+    <noscript>
+      <p>JavaScript runs the rules. Without it, the 18 Nov 2026 morning feed at the default manual (write off bank fees up to $25, ask before a write-off over that cap, exact domain match, week 3 autonomous) does this. $2,200.00 posts to GL-1048 for Oak Court HOA. $780.00 posts to GL-1059 for Cedar Ridge HOA. The $7.50 wire fee on GL-1052 posts with a write-off. Harborview’s $4,350.00 posts to GL-1055 and GL-1081 because the memo names both. Rivermark’s $2,800.00 posts to GL-1041 and GL-1042 because a remittance from ap@rivermark-properties.com names them. The $40.00 bank fee on GL-1063 waits for approval. The $30.00 credit on GL-1066 waits for approval. Oak Court’s $300.00 dispute on GL-1074 and Pinefold’s short pay on GL-1088 go to collections. Summit Plaza LLC’s $625.00 matches no invoice. The email from ap@rivermark-propertles.com is refused, because that domain is not rivermark-properties.com, so the $540.00 payment is not moved onto GL-1094 and the remit-to account is not changed.</p>
+    </noscript>
+  </section>
+
+  <section aria-labelledby="stage-title">
+    <h2 id="stage-title">Onboarding stage</h2>
+    <div class="stages" role="group" aria-label="Onboarding stage">
+      <button type="button" id="stage-observe" data-stage="observe" aria-pressed="false">
+        <span class="stage-k">Week 1</span>
+        <span class="stage-t">Observe</span>
+      </button>
+      <button type="button" id="stage-propose" data-stage="propose" aria-pressed="false">
+        <span class="stage-k">Week 2</span>
+        <span class="stage-t">Propose</span>
+      </button>
+      <button type="button" id="stage-autonomous" data-stage="autonomous" aria-pressed="true">
+        <span class="stage-k">Week 3</span>
+        <span class="stage-t">Autonomous</span>
+      </button>
+    </div>
+    <p class="hint" id="stage-blurb"></p>
+
+    <div class="counters" id="counters">
+      <div class="counter" id="counter-applied">
+        <span class="counter-n" id="count-applied">0</span>
+        <span class="counter-l">Auto-applied</span>
+      </div>
+      <div class="counter">
+        <span class="counter-n" id="count-approval">0</span>
+        <span class="counter-l">Needs approval</span>
+      </div>
+      <div class="counter">
+        <span class="counter-n" id="count-flagged">0</span>
+        <span class="counter-l">Flagged</span>
+      </div>
+      <div class="counter">
+        <span class="counter-n" id="count-minutes">0</span>
+        <span class="counter-l">Minutes saved, illustrative</span>
+      </div>
+    </div>
+    <p class="hint" id="minutes-caption"></p>
+    <p class="banner" id="banner" hidden></p>
+    <button type="button" class="primary" id="run">Run cash app again</button>
+  </section>
+
+  <section aria-labelledby="manual-title">
+    <h2 id="manual-title">Operating manual</h2>
+    <p class="hint">People write this. The bot can read it and cannot change it. Move a control and the feed runs again.</p>
+
+    <label class="slider-label" for="fee">Bank-fee write-off tolerance <span id="fee-readout">$25.00</span></label>
+    <input id="fee" type="range" min="0" max="80" step="1" value="25" aria-valuemin="0" aria-valuemax="80" aria-valuenow="25" aria-valuetext="25 dollars">
+    <div class="ticks" aria-hidden="true"><span>$0</span><span>$80</span></div>
+
+    <label class="slider-label" for="limit">Approval required above <span id="limit-readout">$100.00</span></label>
+    <input id="limit" type="range" min="0" max="200" step="5" value="100" aria-valuemin="0" aria-valuemax="200" aria-valuenow="100" aria-valuetext="100 dollars">
+    <div class="ticks" aria-hidden="true"><span>$0</span><span>$200</span></div>
+    <p class="hint">A bank fee posts on its own only when the gap is within both numbers. The tighter one is the cap. Credits and refunds always wait, whatever the cap is.</p>
+
+    <fieldset>
+      <legend>Short-pay handling</legend>
+      <div class="chips" role="group" aria-label="Short-pay handling">
+        <button type="button" id="short-collections" aria-pressed="true">Flag to collections</button>
+        <button type="button" id="short-hold" aria-pressed="false">Hold for a person</button>
+      </div>
+    </fieldset>
+
+    <label class="field" for="domains">Approved customer contact domains
+      <textarea id="domains" rows="8" spellcheck="false" autocomplete="off">rivermark-properties.com
+oakcourthoa.org
+northline-offices.com
+harborview-mgmt.com
+cedarridgehoa.org
+millwork-commons.com
+lakeside-property.com
+pinefold-trust.com</textarea>
+    </label>
+    <p class="hint">One domain per line. Remittance advice counts only when the sender’s domain matches a line exactly.</p>
+
+    <button type="button" class="toggle" id="loose" aria-pressed="false">
+      <span class="box" aria-hidden="true"></span>
+      <span class="toggle-copy">
+        <span class="toggle-title">Loose domain check (bad idea)</span>
+        <span class="toggle-detail">Treats i, l, and 1 as the same character. <span class="mono">rivermark-propertles.com</span> then passes as <span class="mono">rivermark-properties.com</span>. A capital i, as in <span class="mono">greenIine-pm.com</span>, would pass the same way against <span class="mono">greenline-pm.com</span>.</span>
+      </span>
+    </button>
+
+    <div class="diff" aria-label="Approved domain beside the lookalike">
+      <p class="diff-row ok"><span class="diff-k">Approved</span> <span class="mono">rivermark-propert<span class="ch">i</span>es.com</span></p>
+      <p class="diff-row bad"><span class="diff-k">Inbox</span> <span class="mono">rivermark-propert<span class="ch">l</span>es.com</span></p>
+    </div>
+    <button type="button" id="reset">Reset the manual</button>
+  </section>
+
+  <section aria-labelledby="results-title">
+    <h2 id="results-title">This run</h2>
+    <p class="hint">Each line is the bot’s reason. The audit log below keeps the same words.</p>
+    <div id="decisions"></div>
+  </section>
+
+  <section aria-labelledby="books-title">
+    <h2 id="books-title">Open invoices</h2>
+    <p class="hint" id="books-hint"></p>
+    <div id="invoices"></div>
+  </section>
+
+  <section aria-labelledby="feed-title">
+    <h2 id="feed-title">Payment feed</h2>
+    <p class="hint">The 8:05 lockbox file. Twice a day is the cadence in the write-up. This page runs the morning file.</p>
+    <div id="feed"></div>
+  </section>
+
+  <section aria-labelledby="inbox-title">
+    <h2 id="inbox-title">Remittance inbox</h2>
+    <p class="hint">The bot reads these. It does not send mail. The last one asks for a different invoice and a new remit-to account.</p>
+    <div id="inbox"></div>
+  </section>
+
+  <section aria-labelledby="log-title">
+    <h2 id="log-title">Audit log</h2>
+    <ol class="log" id="log"></ol>
+  </section>
+
+  <section class="try" aria-labelledby="try-title">
+    <h2 id="try-title">Try this in your business</h2>
+    <ul>
+      <li>Write the operating manual first. Put the write-off cap, the approval limit, and the approved domains in a doc the bot can read and cannot edit.</li>
+      <li>Start in propose mode. Let it explain each payment, and approve the routine ones for a week before it posts on its own.</li>
+      <li>Keep refunds, credits, and write-offs above your limit behind a designated person. Let exact matches go through.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Greenline Commercial Landscaping, its customers, and these invoices are fiction.</p>
+    <p>Source: <a href="https://x.com/bot/status/2122771386456551516">@bot on X</a> and the write-up <a href="https://x.ai/news/grok-bot-accounting">Building an accounting team with Grok Bot</a>.</p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
