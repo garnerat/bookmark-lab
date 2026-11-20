@@ -1,0 +1,8 @@
+{
+  "name": "tiny-observability-lab",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test check.js"
+  }
+}
