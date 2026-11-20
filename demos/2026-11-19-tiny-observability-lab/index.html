@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tiny observability lab — Ironside Strength Co. — Bookmark Lab</title>
+<meta name="description" content="A phone-friendly simulation of metrics, logs, and traces for fictional Ironside Strength Co. The 6am class rush hides in average latency and shows up in p95, a trace waterfall, and an alert window.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%239a3412'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Fictional example · Ironside Strength Co.</p>
+    <h1>Tiny observability lab</h1>
+    <p class="lede">Ironside Strength Co. is a made-up gym. Members book Dawn Iron, the 6:00 class, on a small web app. This page rebuilds one Thursday morning of that app: how many bookings, how slow they were, which ones failed, and the path a single booking took through the site, the API, Postgres, and the text provider.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/Replit/status/2122759176288190724">@Replit</a>, 17 Nov 2026. The post links <a href="https://github.com/replit/datacat">DataCat</a>:</p>
+    <blockquote>
+      <p>The leading observability platform wants $83,700/yr just to monitor your app and catch issues.</p>
+      <p>So Replit Missions built DataCat. 100% free.</p>
+    </blockquote>
+    <p class="source">DataCat is the free, self-hosted project in that repo: metrics, logs, traces, dashboards, and alerts, stored in PostgreSQL or ClickHouse, accepting OpenTelemetry. This page does not run DataCat. It simulates the three signals, on the gym’s booking app, so a slow class rush is visible without that contract.</p>
+  </header>
+
+  <section class="caveat" aria-label="What this page is and is not">
+    <p><strong>Fictional gym, seeded numbers.</strong> Ironside Strength Co., the members, and Dawn Iron were written for this page. Member ids are made up. Nothing is a real person, and the page makes no network request. The same seed rebuilds the same morning.</p>
+    <noscript>
+      <p>JavaScript draws the charts. Without it, the default morning is the slow-database incident, an alert on p95 over 800 ms for 10 minutes. At 05:45 four front-desk retries return 500. That bucket’s error rate is about 22%, and its p95 stays under 100 ms. At 05:55, 06:00, and 06:05 the seat query waits: p95 is over 2 seconds, the average stays under 800 ms, and there are no errors. The p95 alert fires at 06:00 and 06:05. The same threshold on average latency never fires. An error-rate alert with no duration window fires on the 05:45 blip. The same error alert for 10 minutes stays quiet. A trace of a slow booking shows Postgres holding the seat lock for most of the wait. The text provider is a short hop on that booking. The $83,700/yr figure is Replit’s claim about the leading platform, not a bill for this gym. An illustrative self-hosted sketch is a $24/mo VPS with Postgres on the same machine and a $0 license.</p>
+    </noscript>
+  </section>
+
+  <section aria-labelledby="signals-title">
+    <h2 id="signals-title">What the stack is actually watching</h2>
+    <div class="signals">
+      <article>
+        <h3>Metrics</h3>
+        <p>A number every 5 minutes: bookings, p50, average, p95, and the error rate. This is the chart.</p>
+      </article>
+      <article>
+        <h3>Traces</h3>
+        <p>One booking, as spans: the web page, booking-api, Postgres, then the confirmation text. A card charge would be the same kind of last hop.</p>
+      </article>
+      <article>
+        <h3>Logs</h3>
+        <p>The lines those services wrote. The trace_id on the line is the same id as the trace, so the slow query belongs to that member’s tap, not to the booking next to it.</p>
+      </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="incident-title">
+    <h2 id="incident-title">Break the morning</h2>
+    <p class="hint">Each button injects one fault into the seeded bookings. Turn on more than one. Quiet morning leaves only the 05:45 retries.</p>
+    <div class="incidents">
+      <button type="button" id="inc-db" aria-pressed="true">
+        <span class="stage-k">06:00 class</span>
+        <span class="stage-t">Slow database</span>
+        <span class="stage-d">About a quarter of seat writes wait on a lock from 05:55 to 06:05. The rest stay fast.</span>
+      </button>
+      <button type="button" id="inc-sms" aria-pressed="false">
+        <span class="stage-k">Text provider</span>
+        <span class="stage-t">SMS timeouts</span>
+        <span class="stage-d">From 05:50 to 06:20 many confirmation texts stall for 2.5s, and the booking waits with them.</span>
+      </button>
+      <button type="button" id="inc-deploy" aria-pressed="false">
+        <span class="stage-k">06:40 release</span>
+        <span class="stage-t">Bad deploy</span>
+        <span class="stage-d">book-api@1.8.4 throws on the seat check. Failures are fast, so latency still looks calm.</span>
+      </button>
+      <button type="button" id="inc-quiet" aria-pressed="false">
+        <span class="stage-k">No injected fault</span>
+        <span class="stage-t">Quiet morning</span>
+        <span class="stage-d">Clears the three faults. The four 05:45 retries remain, on purpose.</span>
+      </button>
+    </div>
+  </section>
+
+  <section aria-labelledby="board-title">
+    <h2 id="board-title">The morning, in 5-minute buckets</h2>
+    <p class="hint" id="legend">Rust is firing. Gold is over the line and still inside the wait. Green is quiet. Drag the time or tap a chart.</p>
+    <p class="hint" id="bucket-detail"></p>
+    <div class="scrub">
+      <button type="button" id="scrub-prev" aria-label="Previous 5 minutes">Back</button>
+      <p class="scrub-read" id="bucket-readout" aria-live="polite"></p>
+      <button type="button" id="scrub-next" aria-label="Next 5 minutes">Next</button>
+    </div>
+    <label class="sr" for="scrub">Minute of the morning</label>
+    <input id="scrub" type="range" min="0" max="23" step="1" value="6">
+
+    <h3>Bookings</h3>
+    <div class="chart" id="chart-rate"></div>
+    <h3>Latency <span class="chart-note" id="latency-note"></span></h3>
+    <div class="chart" id="chart-latency"></div>
+    <p class="legend-line"><span class="swatch avg"></span> average <span class="swatch p50"></span> p50 <span class="swatch line"></span> alert line, when this rule is latency. Bar color follows the rule, not the series.</p>
+    <h3>Error rate</h3>
+    <div class="chart" id="chart-errors"></div>
+
+    <details class="readings">
+      <summary>All 24 readings</summary>
+      <div class="table-wrap">
+        <table id="readings">
+          <thead>
+            <tr><th>Time</th><th>Bookings</th><th>Errors</th><th>p50</th><th>Average</th><th>p95</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <section aria-labelledby="trace-title">
+    <h2 id="trace-title">One booking</h2>
+    <p class="hint" id="trace-hint">Saved traces are the slow ones and the failed ones, plus a single healthy booking at 05:30. Tap one. The waterfall and the log lines share a trace_id.</p>
+    <div id="trace-list"></div>
+    <div id="trace-detail"></div>
+  </section>
+
+  <section aria-labelledby="rule-title">
+    <h2 id="rule-title">Alert rule</h2>
+    <p class="hint">A rule is a metric, a line, and a duration. It fires when the metric stays over the line for that long. Evaluation uses a strict greater-than, and the duration rounds up to 5-minute buckets.</p>
+
+    <fieldset>
+      <legend>Metric</legend>
+      <div class="chips" role="group" aria-label="Metric">
+        <button type="button" id="metric-p95" aria-pressed="true">p95 latency</button>
+        <button type="button" id="metric-avg" aria-pressed="false">Average <span class="gotcha-k">gotcha</span></button>
+        <button type="button" id="metric-error" aria-pressed="false">Error rate</button>
+      </div>
+    </fieldset>
+    <p class="explain" id="latency-line"></p>
+
+    <label class="slider-label" for="threshold">Threshold <span id="threshold-readout">800 ms</span></label>
+    <input id="threshold" type="range" min="200" max="2000" step="50" value="800">
+
+    <fieldset>
+      <legend>How long it has to stay over the line</legend>
+      <div class="chips" role="group" aria-label="Duration window">
+        <button type="button" id="window-0" aria-pressed="false">Any bucket <span class="gotcha-k">gotcha</span></button>
+        <button type="button" id="window-10" aria-pressed="true">For 10 minutes</button>
+        <button type="button" id="window-15" aria-pressed="false">For 15 minutes</button>
+      </div>
+    </fieldset>
+    <p class="explain" id="noise-line"></p>
+
+    <p class="banner" id="alert-banner"></p>
+    <p class="hint" id="pending-line"></p>
+    <ul class="compare" id="compare"></ul>
+  </section>
+
+  <section aria-labelledby="cost-title">
+    <h2 id="cost-title">What this costs, as a sketch</h2>
+    <p class="hint">The per-host and per-GB rates are round teaching numbers, not a vendor’s price list. The $83,700/yr figure is Replit’s claim from the post, not an invoice for Ironside.</p>
+    <label class="slider-label" for="hosts">Hosts in the hosted sketch <span id="hosts-readout">1</span></label>
+    <input id="hosts" type="range" min="1" max="20" step="1" value="1">
+    <label class="slider-label" for="gb">GB ingested per month <span id="gb-readout">8</span></label>
+    <input id="gb" type="range" min="1" max="80" step="1" value="8">
+    <div id="cost-out"></div>
+  </section>
+
+  <section class="try" aria-labelledby="try-title">
+    <h2 id="try-title">Try it yourself</h2>
+    <p>DataCat’s own README is the setup that was checked for this page. Do that, rather than a flag invented here.</p>
+    <ol>
+      <li>Clone <a href="https://github.com/replit/datacat">github.com/replit/datacat</a> and follow the Quick start in the <a href="https://github.com/replit/datacat/blob/develop/README.md">README</a>. It copies <span class="mono">.env.example</span> to <span class="mono">.env</span>, has you set <span class="mono">POSTGRES_PASSWORD</span> and <span class="mono">SESSION_SECRET</span>, then runs <span class="mono">docker compose up -d --build</span>. The UI is <span class="mono">http://localhost:3000</span>.</li>
+      <li>OpenTelemetry SDKs send OTLP/HTTP to <span class="mono">/v1/traces</span>, <span class="mono">/v1/metrics</span>, and <span class="mono">/v1/logs</span> (also under <span class="mono">/otlp/v1/*</span>). Telemetry storage is PostgreSQL or ClickHouse, chosen with <span class="mono">DATACAT_STORAGE</span>. Both are in the <a href="https://github.com/replit/datacat/blob/develop/docs/SELF_HOSTING.md">self-hosting guide</a>.</li>
+      <li>The guide’s Node path, aimed at this booking app, is the documented variables with your service name:</li>
+    </ol>
+    <pre><code>DATACAT_SERVICE=booking-api DATACAT_URL=https://observe.example.com \
+  DATACAT_API_KEY="$YOUR_API_KEY" node -r @datacat/trace/init app.js</code></pre>
+    <p><span class="mono">DATACAT_URL</span> is the origin without <span class="mono">/otlp</span>. The same guide covers a local agent on port 4318, and Python via <span class="mono">datacat-run</span>. Create the API key in the UI. Do not put a real key in a shell history you share.</p>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Ironside Strength Co. and Dawn Iron are fiction. The morning is generated in this browser.</p>
+    <p>Source: <a href="https://x.com/Replit/status/2122759176288190724">@Replit on X</a> and the repo <a href="https://github.com/replit/datacat">replit/datacat</a>.</p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
