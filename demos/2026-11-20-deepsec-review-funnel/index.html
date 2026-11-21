@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Security review funnel — Second Chance Paws Rescue — Bookmark Lab</title>
+<meta name="description" content="A phone-friendly simulation of a security review funnel on a fictional animal-rescue app. Not deepsec itself. No network calls.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231e3a5f'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Simulation · Second Chance Paws Rescue</p>
+    <h1>Security review funnel</h1>
+    <p class="lede">Second Chance Paws Rescue is a made-up nonprofit. The app takes donations, volunteer sign-ups, and adoption applications. This page walks 22 short files from that app through the shape of a security review.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/dillon_mulroy/status/2123761892787175459">a post by Dillon Mulroy</a> recommending Vercel’s open-source <a href="https://vercel.com/oss/deepsec">deepsec</a>. The repo is <a href="https://github.com/vercel-labs/deepsec">vercel-labs/deepsec</a>. The Vercel page says:</p>
+    <blockquote>
+      <p>deepsec is an open-source security review harness. It maps the security-sensitive surfaces in a repository, uses local matchers to select candidate files, sends coding agents through the relevant code paths, and revalidates their findings.</p>
+    </blockquote>
+    <p class="source">You start it with <code>npx deepsec init</code> at the repo root. This page does not add features, flags, or output formats beyond that description.</p>
+  </header>
+
+  <section class="caveat" aria-label="What this page is">
+    <p><strong>Simulation of the pipeline idea. This is not deepsec, and it does not scan a repository.</strong> The 22 files, the findings, and the token and time numbers were written for this page. The token and time numbers are made-up illustrative estimates. The agent traces are scripted. The switches change which of those scripted findings stay in the report. Nothing is uploaded. This page does not call a model or use the network. The key in the test fixture is not a real key.</p>
+    <noscript>
+      <p>JavaScript draws the funnel. The canned walk-through is 22 files, 13 security-sensitive surfaces, 7 matcher candidates, 7 agent findings, and 4 revalidated findings. The four that stand are an IDOR on routes/adoptions/[id].ts (no check that application.ownerId === session.userId), a webhook in lib/stripeWebhook.ts with no signature check, a CSV export in admin/export.ts with no auth check, and an image fetch in lib/fetchPetPhoto.ts that requests a URL from the caller. Revalidation drops three false positives: a public pet page, a dangerouslySetInnerHTML call that renders escaped text, and a test fixture whose key is the made-up string sk_test_secondChancePaws_not_a_real_key. Skipping revalidation leaves those false positives in the report. Skipping matchers sends all 22 files. In the made-up estimate that raises the cost from about 9,800 tokens and about 2 minutes to about 92,400 tokens and about 10 minutes. Regex only, with no agent, reports 5 pattern hits and misses the IDOR, because that handler does not pattern-look dangerous.</p>
+    </noscript>
+  </section>
+
+  <section aria-labelledby="funnel-title">
+    <h2 id="funnel-title">The funnel</h2>
+    <p class="hint">Per the project page, the harness does four things: map surfaces, select candidates with local matchers, send coding agents through those paths, and revalidate the findings. All files is the pile you start with. Tap a stage, then tap a file for the snippet and the trace.</p>
+    <div class="funnel" id="funnel" role="group" aria-label="Review funnel"></div>
+  </section>
+
+  <section aria-labelledby="switch-title">
+    <h2 id="switch-title">What you skip</h2>
+    <p class="hint">These switches belong to the simulation. They are not deepsec flags. Token and time figures below are made-up illustrative estimates.</p>
+    <div class="toggles">
+      <button type="button" class="toggle" id="toggle-revalidation" aria-pressed="false">
+        <span class="stage-t">Skip revalidation</span>
+        <span class="sub">False positives flood the report.</span>
+      </button>
+      <button type="button" class="toggle" id="toggle-matchers" aria-pressed="false">
+        <span class="stage-t">Skip matchers / send every file to the agent</span>
+        <span class="sub">The made-up token and time cost balloons.</span>
+      </button>
+      <button type="button" class="toggle" id="toggle-regex" aria-pressed="false">
+        <span class="stage-t">Regex matchers only, no agent <span class="gotcha-k">gotcha</span></span>
+        <span class="sub">Misses the IDOR. Logic bugs need a traced path.</span>
+      </button>
+    </div>
+    <p class="summary" id="summary"></p>
+    <div id="cost"></div>
+    <div id="gotcha"></div>
+  </section>
+
+  <section aria-labelledby="list-heading">
+    <h2 id="list-heading">Revalidated</h2>
+    <p class="hint" id="list-hint"></p>
+    <div class="list" id="list"></div>
+  </section>
+
+  <section class="try" aria-labelledby="try-title">
+    <h2 id="try-title">Try it on your own repo</h2>
+    <p>From the root of the repository you want reviewed:</p>
+    <p class="command">npx deepsec init</p>
+    <button type="button" class="copy-btn" id="copy-cmd">Copy the command</button>
+    <p>A short list for a small org, using this rescue as the picture:</p>
+    <ol>
+      <li>Run it on a branch, not on the only copy of main. A noisy report is easier to drop that way.</li>
+      <li>Read the revalidated findings first. Earlier stages still contain false positives. In this fictional repo those are the public pet page, the foster note, and the test-fixture key.</li>
+      <li>Fix the auth and ownership bugs first. A route that loads an adoption application by id, with no check that the row belongs to the session, comes before anything cosmetic.</li>
+      <li>Then the webhook that never checks a signature, the CSV export with no staff check, and the server-side fetch of a URL the caller supplied.</li>
+    </ol>
+    <p>Source post: <a href="https://x.com/dillon_mulroy/status/2123761892787175459">Dillon Mulroy on X</a>. Project page: <a href="https://vercel.com/oss/deepsec">vercel.com/oss/deepsec</a>. Code: <a href="https://github.com/vercel-labs/deepsec">github.com/vercel-labs/deepsec</a>.</p>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Second Chance Paws Rescue, the families, and the 22 files are fiction. The review is a simulation, not a scan.</p>
+    <p><a href="https://x.com/dillon_mulroy/status/2123761892787175459">Source post</a> · <a href="https://vercel.com/oss/deepsec">deepsec</a> · <a href="https://github.com/vercel-labs/deepsec">vercel-labs/deepsec</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
