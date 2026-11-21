@@ -1,0 +1,8 @@
+{
+  "name": "deepsec-review-funnel",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test check.js"
+  }
+}
