@@ -1,0 +1,8 @@
+{
+  "name": "model-backdoor-check",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test check.js"
+  }
+}
