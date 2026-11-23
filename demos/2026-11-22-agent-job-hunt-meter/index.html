@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What an AI job-hunting agent sees — Harbor &amp; Pine Realty — Bookmark Lab</title>
+<meta name="description" content="An illustrative simulation. See what a jobs-API agent returns for a fictional brokerage, Harbor &amp; Pine Realty, and what the hunt costs. No network calls.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231f4d3a'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Illustrative simulation · Harbor &amp; Pine Realty</p>
+    <h1>What an AI job-hunting agent sees — and what it costs</h1>
+    <p class="lede">Harbor &amp; Pine Realty is a fictional brokerage hiring a Transaction Coordinator. One side of this page is the bill for a hunt. The other is the posting the agent can and cannot see.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/treg_ai/status/2122647673056735318">Treg (@treg_ai)</a>, 17 Nov 2026:</p>
+    <blockquote>
+      <p>Introducing Jev @typesafeai powered jobs-api.</p>
+      <p>Try it at <a href="https://treg.to/jobs-api">treg.to/jobs-api</a>.</p>
+      <ul>
+        <li>One API to any jobs data</li>
+        <li>$0.03 to run a full job hunt</li>
+        <li>Real salary &amp; hiring manager data</li>
+        <li>Plugin to any agent for your dream job</li>
+      </ul>
+      <p>Fully open source, 0% markup.</p>
+    </blockquote>
+  </header>
+
+  <section class="caveat" aria-label="What this page is">
+    <p><strong>Illustrative simulation.</strong> Harbor &amp; Pine Realty, Jordan Hale, Naomi Pell, and every other firm and person here were invented for this page. Pay figures were invented here. They are not salary data from treg.to. Fit numbers are a sketch so a shortlist can move. They are not Jev scores. The per-token price was invented for this page. The jobs-api card says the fit score is billed by input tokens and does not list a token price. Nothing on this page calls a network API.</p>
+    <noscript>
+      <p>JavaScript runs the ticker and the shortlist. Without it, the default reading is this. Harbor &amp; Pine Realty is posted on its own site and Facebook, with no pay range, vague wording, and only a recruiting team. The agent in this sketch queries Greenhouse, Lever, and Ashby, so the firm has no rank, and the list does not say it was skipped. A search of 20 jobs at $0.0015 is $0.03. Add an illustrative fit score on an 800-token resume, three hiring-manager emails at the people-catalog rate, and one $0.01 salary-percentile call, and leave the $0.25 benchmark report off: the total is $0.05405, a few cents. Turn the report on and $0.25 is the largest line. 167 searches at $0.0015 cost $0.2505, just over one report. 2,000 searches cost $3.00. Driftwood Realty, a strong fictional match posted only on its own site, stays off the list too.</p>
+    </noscript>
+  </section>
+
+  <section aria-labelledby="pipeline-title">
+    <h2 id="pipeline-title">Four steps the jobs-api page describes</h2>
+    <ol class="pipeline">
+      <li><strong>Find and rank open roles</strong> on employer boards. The page names Greenhouse, Lever, and Ashby in the walkthrough, and also SmartRecruiters and Workable in the catalog. Jev scores fit against a resume.</li>
+      <li><strong>Find the hiring manager.</strong> The page’s words: “the team that owns the role, not the recruiter.”</li>
+      <li><strong>Write a short pitch</strong> to that person. The agent writes the note.</li>
+      <li><strong>Check salary.</strong> Percentiles are one call. A full benchmark report is another.</li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="rates-title">
+    <h2 id="rates-title">The rate card</h2>
+    <p class="hint" id="rate-label">Rates listed on treg.to as of Nov 22, 2026; may change.</p>
+    <ul class="rates">
+      <li>Job search — $0.0015 per job</li>
+      <li>New roles since last check — $0.002 per new job</li>
+      <li>Closed roles — free</li>
+      <li>Salary percentiles — $0.01 per call</li>
+      <li>Full salary benchmark report — $0.25 per report</li>
+      <li>Jev fit score — billed by input tokens. This page uses an illustrative $0.50 per 1,000,000 input tokens. Illustrative price invented for this page. Not a Jev price.</li>
+    </ul>
+    <p class="hint">The jobs-api page also says an empty page costs nothing, and that new teams start with $1.00 free. It names people.search and people.email.find and does not print a price beside them. The people catalog lists routed people.search as free and treg.people.email.find at $0.00095 per success. This meter uses those catalog figures for the hiring-manager lines, and it assumes each email lookup succeeds.</p>
+  </section>
+
+  <section aria-labelledby="hunt-title">
+    <h2 id="hunt-title">Run the hunt</h2>
+    <p class="hint">Jordan Hale is fictional: six years coordinating residential closings in Portland. Escrow dates, MLS status, commission files. Target pay $62,000 to $74,000. The post’s $0.03 is 20 jobs × $0.0015. The rest of the bill is whatever you turn on.</p>
+
+    <div class="presets" role="group" aria-label="Hunt presets">
+      <button type="button" id="preset-typical" data-preset="typical">Typical hunt</button>
+      <button type="button" id="preset-report" data-preset="report">Add the $0.25 report</button>
+      <button type="button" id="preset-thousands" data-preset="thousands">2,000 searches</button>
+      <button type="button" id="preset-empty" data-preset="empty">Empty page</button>
+    </div>
+
+    <label class="slider-label" for="roles">Roles to search <span id="roles-readout">20</span></label>
+    <input id="roles" type="range" min="0" max="4000" step="1" value="20" aria-valuemin="0" aria-valuemax="4000" aria-valuenow="20" aria-valuetext="20 roles">
+    <div class="chips" data-chip-for="roles" role="group" aria-label="Role-count jumps">
+      <button type="button" data-value="0">0</button>
+      <button type="button" data-value="20">20</button>
+      <button type="button" data-value="167">167</button>
+      <button type="button" data-value="2000">2,000</button>
+    </div>
+
+    <label class="slider-label" for="fresh">New roles since last check <span id="fresh-readout">0</span></label>
+    <input id="fresh" type="range" min="0" max="2000" step="1" value="0" aria-valuemin="0" aria-valuemax="2000" aria-valuenow="0" aria-valuetext="0 new roles">
+    <div class="chips" data-chip-for="fresh" role="group" aria-label="New-role jumps">
+      <button type="button" data-value="0">0</button>
+      <button type="button" data-value="50">50</button>
+      <button type="button" data-value="200">200</button>
+    </div>
+
+    <label class="slider-label" for="managers">Hiring managers to look up <span id="managers-readout">3</span></label>
+    <input id="managers" type="range" min="0" max="12" step="1" value="3" aria-valuemin="0" aria-valuemax="12" aria-valuenow="3" aria-valuetext="3 hiring managers">
+    <p class="hint" id="clamp-note"></p>
+
+    <label class="slider-label" for="resume">Resume length <span id="resume-readout">800 tokens</span></label>
+    <input id="resume" type="range" min="200" max="8000" step="100" value="800" aria-valuemin="200" aria-valuemax="8000" aria-valuenow="800" aria-valuetext="800 tokens">
+    <p class="hint" id="token-note"></p>
+
+    <div class="pair" role="group" aria-label="Salary calls">
+      <button type="button" id="percentile" aria-pressed="true">Salary percentiles, $0.01</button>
+      <button type="button" id="benchmark" aria-pressed="false">Benchmark report, $0.25</button>
+    </div>
+
+    <button type="button" class="primary" id="play">Play the four steps</button>
+
+    <div class="ticker" id="ticker">
+      <span id="ticker-label">This hunt</span>
+      <span class="ticker-amount" id="ticker-amount">$0.00</span>
+    </div>
+
+    <ol class="steps" id="steps">
+      <li data-step="1"><span class="step-k">01</span> Find and rank open roles</li>
+      <li data-step="2"><span class="step-k">02</span> Find the hiring manager</li>
+      <li data-step="3"><span class="step-k">03</span> Write a short pitch</li>
+      <li data-step="4"><span class="step-k">04</span> Check salary</li>
+    </ol>
+    <p class="hint" id="step-detail"></p>
+  </section>
+
+  <section aria-labelledby="bill-title">
+    <h2 id="bill-title">Where the money goes</h2>
+    <p id="lesson"></p>
+    <div class="bar" id="bar" aria-hidden="true"></div>
+    <div id="breakdown"></div>
+    <p class="hint" id="credit"></p>
+    <p class="callout">A typical hunt on this page, about 20 searches and no benchmark report, lands around a few cents. One $0.25 report costs the same neighborhood as 167 searches at $0.0015. Thousands of those cheap searches are what it takes before search outspends a single report: 2,000 searches are $3.00.</p>
+  </section>
+
+  <section aria-labelledby="firm-title">
+    <h2 id="firm-title">Harbor &amp; Pine’s posting</h2>
+    <p class="hint">The role is Transaction Coordinator. Flip the posting, then watch the shortlist. A named owner does not change the sketch fit. It changes who the note is addressed to. Pay and the board change whether the post is in the list at all.</p>
+    <div class="presets" role="group" aria-label="Posting presets">
+      <button type="button" id="preset-brokerage">As a small brokerage often posts</button>
+      <button type="button" id="preset-ready">Readable by the agent</button>
+    </div>
+
+    <fieldset>
+      <legend>Where it is posted</legend>
+      <div class="pair" role="group" aria-label="Where Harbor and Pine is posted">
+        <button type="button" id="board-off" aria-pressed="true">Own site and Facebook</button>
+        <button type="button" id="board-on" aria-pressed="false">Greenhouse</button>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Pay</legend>
+      <div class="pair" role="group" aria-label="Whether the posting lists pay">
+        <button type="button" id="pay-off" aria-pressed="true">No pay range</button>
+        <button type="button" id="pay-on" aria-pressed="false">$63,000–$72,000</button>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>How the work is described</legend>
+      <div class="pair" role="group" aria-label="Duties on the posting">
+        <button type="button" id="duties-vague" aria-pressed="true">Vague buzzwords</button>
+        <button type="button" id="duties-concrete" aria-pressed="false">Concrete duties</button>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Who the note can reach</legend>
+      <div class="pair" role="group" aria-label="Who is named on the posting">
+        <button type="button" id="owner-team" aria-pressed="true">Recruiting team</button>
+        <button type="button" id="owner-named" aria-pressed="false">Naomi Pell, Designated Broker</button>
+      </div>
+    </fieldset>
+    <button type="button" class="toggle" id="require-pay" aria-pressed="true">Pay filter on. Posts with no pay range drop out.</button>
+    <p class="hint">Sketch fit is 90 when the duties name escrow, MLS, and commission files. Vague buzzwords score 41. The rank uses that sketch. It does not reorder a post just because pay is listed. With the pay filter on, a missing range removes the post.</p>
+  </section>
+
+  <section aria-labelledby="list-title">
+    <h2 id="list-title">Where Harbor &amp; Pine lands</h2>
+    <p class="placement" id="placement"></p>
+    <button type="button" id="find-harbor">Show Harbor &amp; Pine</button>
+  </section>
+
+  <section aria-labelledby="silence-title">
+    <h2 id="silence-title">What the agent does not say</h2>
+    <p class="gotcha" id="silence-lead">These postings are outside the agent’s answer. The shortlist does not grow a line that says they were skipped.</p>
+    <div id="silence"></div>
+    <p class="hint" id="missed"></p>
+    <p class="hint">Closed roles in this fictional set are checked free and are not open-role results: Saltline Realty and Pebble Street Realty.</p>
+  </section>
+
+  <section aria-labelledby="list-title-2">
+    <h2 id="list-title-2">The shortlist</h2>
+    <p class="hint" id="list-count"></p>
+    <div id="shortlist"></div>
+    <div id="pitch-wrap">
+      <h3>Pitch notes</h3>
+      <div id="pitch"></div>
+    </div>
+  </section>
+
+  <section class="try" aria-labelledby="try-title">
+    <h2 id="try-title">Try it yourself</h2>
+    <p>This page does not call the service. The jobs API the post introduces is at <a href="https://treg.to/jobs-api">https://treg.to/jobs-api</a>. The source post is <a href="https://x.com/treg_ai/status/2122647673056735318">https://x.com/treg_ai/status/2122647673056735318</a>.</p>
+    <p>The jobs-api page says a new team starts with $1.00 free, and that an empty page costs nothing.</p>
+  </section>
+
+  <footer>
+    <p>Illustrative simulation. Harbor &amp; Pine Realty, its people and postings are fictional. Rates as listed on treg.to on Nov 22, 2026.</p>
+    <p>The $0.00095 hiring-manager email figure is the people-catalog price for treg.people.email.find, which is not on that jobs-api card. The $0.50 per 1,000,000 input tokens fit price was invented for this page.</p>
+    <p><a href="https://x.com/treg_ai/status/2122647673056735318">Source post</a> · <a href="https://treg.to/jobs-api">treg.to/jobs-api</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
