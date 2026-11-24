@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Socratic Tutor Lab — Brightside Veterinary Clinic — Bookmark Lab</title>
+<meta name="description" content="A scripted, phone-friendly simulation of Jane Street's socratic-tutor skill. Brightside Veterinary Clinic is fictional. No model calls.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231d4e4a'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Scripted tutor · Brightside Veterinary Clinic</p>
+    <h1>Socratic Tutor Lab</h1>
+    <p class="lede">Brightside Veterinary Clinic is a fictional clinic. A new front-desk hire is learning phone triage: which calls are emergencies, which are same-day, and which are routine. The tutor on this page is scripted. It does not call a model.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/injaneity/status/2124685667821297704">Zane Chee (@injaneity)</a>, 23 Nov 2026:</p>
+    <blockquote>
+      <p>neon + jane street’s socratic tutor is an unpatched method for learning in a way that doesn’t feel like talking to a slop machine</p>
+    </blockquote>
+    <p class="source">The post points at Jane Street’s open skill, <a href="https://github.com/janestreet/agent_skills/tree/master/socratic-tutor">socratic-tutor</a>. This page follows that skill’s <code>SKILL.md</code>. It is not Jane Street’s tool.</p>
+  </header>
+
+  <section class="caveat" aria-label="What this page is">
+    <p><strong>Scripted simulation.</strong> Brightside Veterinary Clinic does not exist. The phone card was written for this page. It is not veterinary advice, and it is not for a real patient. Nothing here calls a network, a model, or an API.</p>
+    <noscript>
+      <p>JavaScript runs the session. Without it, the shape is still this. "What's a triage protocol?" gets a short answer and no quiz. "Teach me phone triage" starts a session: four diagnostic questions, then a skill map from 0 to 5, then one question at a time. A wrong answer gets a narrower question, not the answer. A spaced-review miss lowers a level. A short final assessment follows. The side-by-side contrast below is an illustrative simulation, not a study result: the script is written so the Socratic path passes a later check, and the answer-dump path misses it.</p>
+    </noscript>
+  </section>
+
+  <section aria-labelledby="skill-title">
+    <h2 id="skill-title">What the skill actually says</h2>
+    <p>The skill is a session, not an answer service. It starts on phrases like "teach me," "tutor me," "quiz me," "drill me," or "help me master." A one-off "explain X," "what is X," or "how do I use X" gets a normal answer, and the loop stays off. If the request is ambiguous, it asks one question before any quiz:</p>
+    <blockquote>Want a quick answer, or should I actually teach you this properly?</blockquote>
+    <ol class="steps">
+      <li><strong>Subskills, then a diagnostic.</strong> Break the topic into 4 to 10 concrete subskills. A broad topic becomes a two-level tree, and the first branch is the one you work. It tells the learner: "I'll start by asking a few questions, one at a time, to see what you already know." Ask 3 to 5 questions, easy to hard. Do not teach until that diagnostic is done. This page uses 5 subskills and 4 questions.</li>
+      <li><strong>Skill map, levels 0 to 5.</strong> 0 unaware. 1 heard of it. 2 can follow along. 3 can do with help. 4 can do independently. 5 can teach it / handle edge cases. Render the map after every level change, and whenever they ask for progress, with solid and light block characters.</li>
+      <li><strong>One question, then stop.</strong> No hints, example answers, or teaching after the question. Prefer questions that make the learner predict, explain why, find the flaw in a plausible-but-wrong claim, apply an idea to a new case, or connect two ideas. A right answer sometimes gets a devil's advocate push.</li>
+      <li><strong>Wrong means a narrower question, not the answer.</strong> The narrower question should expose the contradiction. A direct explanation waits until 2 or 3 failed attempts, and the next step is the same idea from another angle.</li>
+      <li><strong>Levels are earned.</strong> Raise one only across 2 or more independent checks, at least one of them unprompted recall, not immediately after the learner was told the answer. A vague or partial answer is not correct. Do not flatter.</li>
+      <li><strong>Spaced review.</strong> Re-test an earlier subskill without warning. A miss lowers the level. This page labels that card so you can see it. In the skill, the re-test is not announced.</li>
+      <li><strong>The course ends at the target.</strong> Default 4 out of 5, or 5 out of 5 if they asked for full mastery. Level 5 needs an edge case or an adversarial question, and an explanation clear enough that you would trust them to teach it. Then a mixed assessment: at least one question per subskill, plus one integrative problem. Pass: show the final map and the weakest areas. Miss: back to the loop.</li>
+      <li><strong>Commands, any time.</strong> "show progress." "harder" / "easier." "just tell me" overrides Socratic mode for the current question only. "save state" emits a compact block. "resume from:" restores one. This page runs show progress, just tell me, and save state. It does not run harder, easier, or resume.</li>
+    </ol>
+    <p class="hint">Where tools exist, the skill sets a practical exercise and checks the actual output. This page has no tools, so it does not do that. Short explanations are only for material the learner could not derive. Here, that material is the fictional phone card, and it appears after the diagnostic.</p>
+  </section>
+
+  <section aria-labelledby="clinic-title">
+    <h2 id="clinic-title">The clinic this session uses</h2>
+    <p>Brightside Veterinary Clinic is made up. The new hire is learning four kinds of call: toxin ingestion, bloat signs, a limping dog who is eating normally, and vaccine reminders. The card that sorts emergency, same-day, and routine stays inside the session, and it stays hidden until the diagnostic is done.</p>
+  </section>
+
+  <section aria-labelledby="session-title">
+    <h2 id="session-title">Try the scripted session</h2>
+    <p class="hint">One question per screen. The skill map uses levels 0 to 5 and updates when a level changes.</p>
+    <div id="session" class="session">
+      <p class="tutor">Two ways to start. A one-off question gets a normal answer. The tutoring loop stays off.</p>
+      <div class="choices">
+        <button type="button" data-action="intent" data-id="explain">What's a triage protocol?</button>
+        <button type="button" data-action="intent" data-id="teach">Teach me phone triage</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="compare-section" aria-labelledby="compare-title">
+    <h2 id="compare-title">Socratic vs answer-dump</h2>
+    <p class="hint">On a phone, the toggle switches tutors. On a wide screen, they sit side by side. Same wrong answer either way.</p>
+    <p class="disclaimer">Illustrative simulation, not a study result. The script is written so the Socratic path passes this check. It is not evidence about which method works better.</p>
+    <div id="compare"></div>
+  </section>
+
+  <section class="try" aria-labelledby="use-title">
+    <h2 id="use-title">Use it yourself</h2>
+    <p>The skill is on GitHub: <a href="https://github.com/janestreet/agent_skills/tree/master/socratic-tutor">github.com/janestreet/agent_skills/tree/master/socratic-tutor</a>. It is an agent skill you add to an agent that supports skills.</p>
+    <p>Try it in under an hour: turn your own SOP into a tutor session for a new hire.</p>
+    <p>The source post is <a href="https://x.com/injaneity/status/2124685667821297704">https://x.com/injaneity/status/2124685667821297704</a>.</p>
+  </section>
+
+  <footer>
+    <p>Scripted tutor. Brightside Veterinary Clinic is fictional. Not veterinary advice.</p>
+    <p><a href="https://x.com/injaneity/status/2124685667821297704">Source post</a> · <a href="https://github.com/janestreet/agent_skills/tree/master/socratic-tutor">socratic-tutor skill</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
