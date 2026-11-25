@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Compress the tool output, keep the error — Juniper Hill Inn — Bookmark Lab</title>
+<meta name="description" content="An illustrative simulation of context compression for Juniper Hill Inn, a fictional 14-room inn. A toy compressor shrinks repetitive booking JSON and logs, leaves a guest email alone, and shows what happens if the one error is dropped. No network calls.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%2324543f'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Illustrative simulation · Juniper Hill Inn</p>
+    <h1>Compress the tool output, keep the error</h1>
+    <p class="lede">Juniper Hill Inn is a fictional 14-room inn. Its front-desk agent reads the booking system’s tool output before it answers. This page runs a toy compressor on three made-up samples and estimates tokens as characters ÷ 4.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/BharukaShraddha/status/2096844161710243851">Shraddha Bharuka (@BharukaShraddha)</a>, 7 Sep 2026:</p>
+    <blockquote>
+      <p>Your agent reads a 10,000-token log file to find one error. You paid for all 10,000 tokens. The answer needed 1,200.</p>
+      <p>Headroom sits between your agent and the LLM and compresses everything before the model sees it.</p>
+      <p>JSON, code, logs, RAG chunks, each gets its own specialized compressor.</p>
+      <p>And it's reversible: the originals stay on your machine, so nothing is lost.</p>
+    </blockquote>
+    <p class="source">The post points at <a href="https://github.com/headroomlabs-ai/headroom">Headroom</a>, the Apache-2.0 project. The pip and npm package name is <code>headroom-ai</code>. The same post also says “up to 95% fewer tokens” and “same accuracy on benchmarks.” Those are the post’s words. Headroom’s README claims 21–57% fewer input tokens on four agent scenarios, 90%+ on repeated JSON arrays and log lines, and little on prose.</p>
+  </header>
+
+  <section class="caveat" aria-label="What this page is">
+    <p><strong>Illustrative simulation.</strong> This is not Headroom’s actual code or benchmarks. Juniper Hill Inn does not exist. The reservations, the log, and the email were written for this page. Nothing here calls a network, a model, or an API. Token counts are a characters ÷ 4 estimate.</p>
+    <noscript>
+      <p>JavaScript runs the toy compressor. Without it, the three samples are these. A 280-row reservation dump, twenty nights across 14 rooms, is almost the same JSON on every row. Room 9, Spruce, on 26 November 2026 is the exception: the channel still holds walk-in hold WH-9-441, so the Harper party booking was not written. The question is “Which room failed to sync, and why?” A careful pass writes constant fields once, keeps stats, the first row, the last row, and that conflict, and leaves a marker for a local original. Aggressive mode drops the conflict and the summary reads as if every row synced, so the agent would give the wrong answer. The sync log is 280 near-identical lines and one ERROR. The question is “Why did room 9's booking fail to sync?” Deduping the ok lines and keeping the error preserves the reason. Dropping the error does not. The guest email is prose. The question is “What time is the Hale party arriving, and what do they need after 9pm?” The answer is around 9:40pm, and the side door unlatched or a night code, because the front-door code stops at 9pm. The toy leaves that letter unchanged. Headroom’s README calls the local original CCR, for Compress-Cache-Retrieve.</p>
+    </noscript>
+  </section>
+
+  <section aria-labelledby="how-title">
+    <h2 id="how-title">What Headroom’s README and docs describe</h2>
+    <p>Headroom’s README says compression runs on your machine, on tool outputs, logs, JSON, RAG chunks, and chat history, before that text reaches the model. The picture in the README is CacheAligner, then a content router, then CCR. CacheAligner reports prefix drift and does not rewrite the prompt. The router picks the compressor.</p>
+    <ul class="facts">
+      <li><strong>JSON arrays.</strong> SmartCrusher. Headroom’s README says it keeps error items, values outside the normal range, and the first and last rows, chosen from field statistics rather than a keyword list.</li>
+      <li><strong>Logs.</strong> The compression docs route build and test logs to a log compressor that keeps failures and stack traces and collapses repeated lines. Headroom’s README claims 90%+ fewer tokens on repeated JSON arrays and log lines.</li>
+      <li><strong>Prose.</strong> Kompress. Headroom’s README claims little savings on prose, and short prose can come back unchanged.</li>
+      <li><strong>CCR.</strong> Compress-Cache-Retrieve. The original stays in a local store. The compressed text carries a marker, and the model can call <code>headroom_retrieve</code> when it needs the full text.</li>
+    </ul>
+    <p class="hint">Headroom’s README claims these measured input-token savings on four agent scenarios, with its own tokenizer: code search 21% (17,199 to 13,597), SRE debugging 57% (55,957 to 24,340), codebase exploration 42% (58,801 to 33,895), and GitHub issue triage 30% (46,067 to 32,429). This page does not rerun that table.</p>
+    <p class="hint">Docs: <a href="https://docs.headroomlabs.ai/docs">overview</a>, <a href="https://docs.headroomlabs.ai/docs/architecture">architecture</a>, <a href="https://docs.headroomlabs.ai/docs/how-compression-works">how compression works</a>, <a href="https://docs.headroomlabs.ai/docs/ccr">CCR</a>.</p>
+  </section>
+
+  <section aria-labelledby="lab-title">
+    <h2 id="lab-title">Juniper Hill Inn’s front desk</h2>
+    <p>The inn has 14 rooms: Cedar, Maple, Birch, Alder, Pine, Hemlock, Willow, Aspen, Spruce, Lark, Finch, Wren, Heron, and Owl. The dump is 20 nights from 24 November 2026, 280 room-nights. 279 are ordinary confirmed stays. Room 9, Spruce, on Thursday 26 November is the conflict. The log is that morning’s sync: the same story, one error line among hundreds of near-identical ok lines. The email is a separate sample, Morgan Hale writing about a late arrival in Maple. It is not one of the rows.</p>
+    <p class="hint">On a narrow screen the tool output sits above the compressed text. Both boxes scroll on their own.</p>
+
+    <div class="inputs" role="group" aria-label="Sample tool output">
+      <button type="button" data-input="reservations" aria-pressed="true">
+        <span class="btn-k">Sample 1</span>
+        <span class="btn-t">Reservation JSON</span>
+        <span class="btn-d">280 repetitive room-nights</span>
+      </button>
+      <button type="button" data-input="log" aria-pressed="false">
+        <span class="btn-k">Sample 2</span>
+        <span class="btn-t">Sync log</span>
+        <span class="btn-d">280 near-identical lines, one error</span>
+      </button>
+      <button type="button" data-input="email" aria-pressed="false">
+        <span class="btn-k">Sample 3</span>
+        <span class="btn-t">Guest email</span>
+        <span class="btn-d">Prose, one letter</span>
+      </button>
+    </div>
+
+    <p class="kicker-label">Question for the agent</p>
+    <p id="question">Which room failed to sync, and why?</p>
+
+    <label class="check" id="aggressive-wrap">
+      <input id="aggressive" type="checkbox">
+      <span>
+        <strong>Aggressive mode</strong>
+        <span>Drop the rare error or outlier, and do not keep a local original.</span>
+      </span>
+    </label>
+
+    <div class="metrics" aria-label="Estimated tokens">
+      <div class="metric">
+        <span>Before, estimate</span>
+        <strong id="tokens-before">0</strong>
+      </div>
+      <div class="metric">
+        <span>After, estimate</span>
+        <strong id="tokens-after">0</strong>
+      </div>
+      <div class="metric saved">
+        <span>Estimated savings</span>
+        <strong id="tokens-saved">0%</strong>
+      </div>
+    </div>
+    <p class="hint">Characters ÷ 4, rounded up. This percentage is the toy on this made-up text. It is an estimate, and it is not a Headroom benchmark.</p>
+
+    <h3>Cost per 1,000 agent calls</h3>
+    <p class="hint">Input tokens only. The default is an example price so the arithmetic is easy to read.</p>
+    <label class="price" for="price">Example input price, $ per million tokens
+      <input id="price" type="number" min="0" max="10000" step="0.01" inputmode="decimal" value="3" autocomplete="off" aria-describedby="price-hint">
+    </label>
+    <p class="hint" id="price-hint">The $3 default is an example. It is not a quote, and Headroom’s README does not set it.</p>
+    <div class="bills">
+      <div class="bill">
+        <span>1,000 calls, uncompressed</span>
+        <strong id="cost-before">$0.00</strong>
+      </div>
+      <div class="bill">
+        <span>1,000 calls, compressed</span>
+        <strong id="cost-after">$0.00</strong>
+      </div>
+      <div class="bill">
+        <span>Difference</span>
+        <strong id="cost-diff">$0.00</strong>
+      </div>
+    </div>
+    <p class="hint" id="cost-note"></p>
+
+    <div class="verdict kept" id="verdict">
+      <h3 id="verdict-title">The answer is still in the compressed context.</h3>
+      <p id="verdict-body"></p>
+      <div class="agent">
+        <p class="kicker-label" id="agent-label">What the agent would answer from the compressed context</p>
+        <p id="agent"></p>
+      </div>
+      <div class="agent">
+        <p class="kicker-label">The fact in the tool output</p>
+        <p id="truth"></p>
+      </div>
+    </div>
+    <p class="hint" id="technique"></p>
+
+    <div class="panes">
+      <div class="pane">
+        <h3>Tool output</h3>
+        <p class="hint" id="before-meta"></p>
+        <pre id="before" tabindex="0"></pre>
+      </div>
+      <div class="pane is-good" id="after-pane">
+        <h3>Compressed context</h3>
+        <p class="hint" id="after-meta"></p>
+        <pre id="after" tabindex="0"></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="try" aria-labelledby="try-title">
+    <h2 id="try-title">Try it for real</h2>
+    <p>Headroom’s README shows this library call for an app that already builds its messages. The model name is the README’s example. This page does not run it.</p>
+    <pre><code>pip install headroom-ai</code></pre>
+    <pre><code>from headroom import compress
+
+result = compress(messages, model="gpt-4o")</code></pre>
+    <p>The post’s one-minute setup for a coding agent is <code>pip install "headroom-ai[all]"</code> and then <code>headroom wrap claude</code>.</p>
+    <p>Repo: <a href="https://github.com/headroomlabs-ai/headroom">github.com/headroomlabs-ai/headroom</a></p>
+    <p>Docs: <a href="https://docs.headroomlabs.ai/docs">docs.headroomlabs.ai/docs</a></p>
+    <p>Source post: <a href="https://x.com/BharukaShraddha/status/2096844161710243851">x.com/BharukaShraddha/status/2096844161710243851</a></p>
+  </section>
+
+  <footer>
+    <p>Illustrative simulation. Juniper Hill Inn is fictional. Not Headroom’s code, and not its benchmarks.</p>
+    <p><a href="https://x.com/BharukaShraddha/status/2096844161710243851">Source post</a> · <a href="https://github.com/headroomlabs-ai/headroom">Headroom repo</a> · <a href="https://docs.headroomlabs.ai/docs">Docs</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
