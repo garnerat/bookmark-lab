@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Expert Tier Cache Lab — Copperline Physical Therapy — Bookmark Lab</title>
+<meta name="description" content="An illustrative simulation of a three-tier expert cache for Copperline Physical Therapy, a fictional outpatient clinic. Toy experts light up in VRAM, RAM, and SSD. Made-up tok/s, not Magnitude's benchmarks.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%238a4b2a'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Illustrative simulation · Copperline Physical Therapy</p>
+    <h1>Expert Tier Cache Lab</h1>
+    <p class="lede">Copperline Physical Therapy is a fictional outpatient clinic. Two clinicians and a front desk share an office Mac mini. It drafts visit notes and one-page home-exercise handouts, and the drafts stay in the building.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/nickbaumann_/status/2125358178690838963">Nick (@nickbaumann_)</a>, 24 Nov 2026, quoting <a href="https://x.com/tomgreenwald/status/2125348896805175791">Tom Greenwald (@tomgreenwald)</a>:</p>
+    <blockquote>
+      <p>Magnitude splits the model into tiers:</p>
+      <p>1. GPU VRAM holds the shared model layers and most used experts</p>
+      <p>2. System RAM holds the next tier of frequently used experts</p>
+      <p>3. NVMe SSD holds the rest of the model and streams what's needed on demand</p>
+      <p>VRAM needs to fit at least the active experts. Beyond that, the more experts you can cache in VRAM / RAM, the faster it will be. And for whatever spills to disk, a faster SSD (like PCIe 5.0) makes a real difference.</p>
+    </blockquote>
+    <p class="source">Nick's post says he had thought local models meant setting up Ollama, and that Magnitude is the open-source app and CLI for running them on a Mac. The quoted post introduces Magnitude, Apache-2.0, and says only about 5% of experts are used for each token.</p>
+  </header>
+
+  <section class="caveat" aria-label="What this page is">
+    <p><strong>Illustrative simulation.</strong> Made-up numbers. This is not Magnitude's code or benchmarks. Copperline Physical Therapy does not exist. Mara Ellison, Jonah Peck, June Harlow, and Chris Adel are fictional, and the sentences are not a treatment plan. Nothing here calls a network, loads a weight, or runs the engine.</p>
+    <noscript>
+      <p>JavaScript runs the toy cache. Without it, the default sketch is this. One visit note for Mara Ellison, right knee, session 4 of 8, plus a short home plan, drafted on the office Mac mini. The toy layer has 256 experts and routes 12 of them on each token, about 5% of the layer. VRAM starts at 24 slots and RAM at 48, so the 12 active experts fit. The SSD stand-in is PCIe 4 at 5 GB/s. Frequency keeps the most-used experts. Prefetch is on, and about 15% of its guesses are wrong, so a few reads are wasted. Early tokens stream experts SSD to RAM to VRAM. Later tokens for the same note mostly hit VRAM, and the made-up tok/s climbs toward a ceiling of about 83. That ceiling is not the 54 tok/s claimed by the author for a Mac mini M5 Pro. If VRAM is cut below 12 slots, the sketch adds a stall and tok/s falls off. If routing is spread across all 256 experts, the cache misses and the SSD stand-in dominates.</p>
+    </noscript>
+  </section>
+
+  <section aria-labelledby="posts-title">
+    <h2 id="posts-title">What the posts and the docs say</h2>
+    <p>Magnitude's README describes an open-source inference engine that spreads a model across the GPU, system RAM, and SSD so it runs on everyday Macs and PCs. The license is Apache-2.0. The README's account of a sparse mixture-of-experts model matches the quoted post: hundreds of experts, and only about 5% of them activate for each token.</p>
+    <ul class="facts">
+      <li><strong>Three tiers.</strong> The quoted post puts shared layers and the most-used experts in GPU VRAM, the next tier of frequently used experts in system RAM, and the rest on the NVMe SSD. A miss cascades SSD to RAM to VRAM, because the GPU needs those experts in VRAM to do the math.</li>
+      <li><strong>Prefetch.</strong> The post says Magnitude predicts upcoming experts and reads them from disk before the GPU needs them. The README says those reads are strictly read-only, so streaming causes zero SSD wear, and that it uses direct uncached reads instead of OS disk swap.</li>
+      <li><strong>What changes speed.</strong> The post says VRAM has to fit at least the active experts. More cache in VRAM and RAM is faster. For whatever still spills, a faster SSD, such as PCIe 5.0, matters.</li>
+      <li><strong>Apple Silicon.</strong> The hardware docs say Apple Silicon shares memory between the CPU and GPU, and that macOS and other apps use that same pool, so a Mac with 32 GB does not have all 32 GB for a model. On the clinic's Mac mini the VRAM and RAM sliders are two budgets inside one pool, drawn apart so the cascade is visible. A discrete GPU really does have separate VRAM.</li>
+      <li><strong>Claimed by the author.</strong> @tomgreenwald lists these speeds for 2-bit quants at 64k context, and calls them the worst these speeds will ever be. magnitude.dev shows the same four lines and labels them decode speed, 2-bit, 64k context, speculative decoding on. This page does not reproduce them.
+        <ul>
+          <li>Mac mini M5 Pro (48 GB): 54 tok/s, Qwen 3.8 Flash Next</li>
+          <li>RTX 3090 + 64 GB RAM + PCIe 4.0 SSD: 41 tok/s, Qwen 3.8 Flash Next</li>
+          <li>DGX Spark (128 GB): 28 tok/s, GLM 5.3 Flash</li>
+          <li>RTX 5090 + 128 GB RAM + PCIe 4.0 SSD: 17 tok/s, DeepSeek V4.1 Flash</li>
+        </ul>
+      </li>
+    </ul>
+    <p class="hint">The docs also say kernels are tuned on your chip and that the project is over 2x faster than Ollama on average across popular local models. Those are the project's claims. This sketch does not model kernel tuning, speculative decoding, or a comparison with another engine. Docs: <a href="https://docs.magnitude.dev">introduction</a>, <a href="https://docs.magnitude.dev/hardware">hardware</a>, <a href="https://docs.magnitude.dev/faq">FAQ</a>. Benchmarks as published by the project: <a href="https://magnitude.dev/benchmarks">magnitude.dev/benchmarks</a>.</p>
+  </section>
+
+  <section aria-labelledby="lab-title">
+    <h2 id="lab-title">The clinic's Mac mini, one toy layer</h2>
+    <p>Dana Cho, a fictional clinician, drafts on the office Mac mini. The grid is one simplified layer of 256 experts. Each token routes 12 of them, 12 / 256, which is about 5%. Shared layers are assumed to sit in the hot tier already, so they are not drawn. Each toy expert is 8 MiB. That size is made up so the byte counts are easy to read.</p>
+    <p class="hint">Stand-in speeds, not measurements: RAM 50 GB/s. SATA 0.5 GB/s, PCIe 4 5 GB/s, PCIe 5 12 GB/s. If every routed expert is already in VRAM and the 12 fit, the sketch adds 12 ms of compute, about 83 tok/s. A correct prefetch can overlap that 12 ms. Bytes from a wrong guess are extra SSD time and are not hidden. That ceiling is a round number for this page. It is not the 54 tok/s claimed by the author.</p>
+
+    <div class="controls">
+      <div class="full">
+        <p class="kicker" style="margin-top:8px">Draft</p>
+        <div class="chips" role="group" aria-label="Which draft is running">
+          <button type="button" data-scenario="note" aria-pressed="true">One visit note</button>
+          <button type="button" data-scenario="mixed" aria-pressed="false">Topic-hopping afternoon</button>
+        </div>
+      </div>
+
+      <label class="slider" for="vram">
+        <span class="row"><span>VRAM slots</span> <strong id="vram-val">24</strong></span>
+        <input id="vram" type="range" min="4" max="48" step="4" value="24">
+        <span class="hint">The 12 active experts have to fit. 8 is below that line. 24 has room for one hot band.</span>
+      </label>
+      <label class="slider" for="ram">
+        <span class="row"><span>RAM slots</span> <strong id="ram-val">48</strong></span>
+        <input id="ram" type="range" min="8" max="128" step="8" value="48">
+        <span class="hint">The next tier. Experts promoted from SSD land here on the way to VRAM.</span>
+      </label>
+
+      <div>
+        <p class="kicker">SSD speed</p>
+        <div class="chips" role="group" aria-label="SSD speed stand-in">
+          <button type="button" data-ssd="sata" aria-pressed="false">SATA</button>
+          <button type="button" data-ssd="pcie4" aria-pressed="true">PCIe 4</button>
+          <button type="button" data-ssd="pcie5" aria-pressed="false">PCIe 5</button>
+        </div>
+      </div>
+      <label class="slider" for="skew">
+        <span class="row"><span>Routing skew</span> <strong id="skew-val">80%</strong></span>
+        <input id="skew" type="range" min="0" max="100" step="5" value="80">
+        <span class="hint">100% keeps each draft inside a band of 24 experts. 0% picks across all 256.</span>
+      </label>
+
+      <div>
+        <p class="kicker">Cache policy</p>
+        <div class="chips" role="group" aria-label="Cache policy">
+          <button type="button" data-policy="lfu" aria-pressed="true">Frequency</button>
+          <button type="button" data-policy="lru" aria-pressed="false">LRU</button>
+        </div>
+        <p class="hint">Frequency keeps the most-used experts, a toy stand-in for the post's "most used experts." LRU keeps the most recent. Neither one is Magnitude's cache.</p>
+      </div>
+      <div>
+        <p class="kicker">Prefetch</p>
+        <button type="button" id="prefetch" aria-pressed="true">Prefetch on</button>
+        <label class="slider" for="miss">
+          <span class="row"><span>Misprediction</span> <strong id="miss-val">15%</strong></span>
+          <input id="miss" type="range" min="0" max="100" step="5" value="15">
+          <span class="hint">Share of prefetched experts the token does not use. Wrong guesses still read the SSD.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="job">
+      <p id="job-label">One visit note. Mara Ellison's knee draft stays on the office Mac mini.</p>
+      <p class="tape" id="tape" aria-live="off"></p>
+    </div>
+
+    <div class="transport" role="group" aria-label="Token playback">
+      <button type="button" id="play" aria-pressed="false">Play</button>
+      <button type="button" id="pause">Pause</button>
+      <button type="button" id="step">Step</button>
+      <button type="button" id="warm">Warm 28 tokens</button>
+      <button type="button" id="reset">Reset</button>
+    </div>
+    <p class="story" id="story"></p>
+    <div id="banners"></div>
+
+    <div class="metrics" aria-label="Live readouts">
+      <div class="metric vram">
+        <span>VRAM hit rate</span>
+        <strong id="vram-rate">0%</strong>
+        <em id="vram-now"></em>
+      </div>
+      <div class="metric ram">
+        <span>RAM hit rate</span>
+        <strong id="ram-rate">0%</strong>
+        <em id="ram-now"></em>
+      </div>
+      <div class="metric ssd">
+        <span>SSD miss rate</span>
+        <strong id="ssd-rate">0%</strong>
+        <em id="ssd-now"></em>
+      </div>
+      <div class="metric ssd">
+        <span>SSD bytes this token</span>
+        <strong id="ssd-bytes">0 MiB</strong>
+        <em id="ssd-bytes-avg"></em>
+      </div>
+      <div class="metric waste">
+        <span>Wasted prefetch</span>
+        <strong id="wasted">0 MiB</strong>
+        <em id="wasted-now"></em>
+      </div>
+      <div class="metric tok">
+        <span>Modeled tok/s</span>
+        <strong id="toks">0</strong>
+        <em id="toks-now"></em>
+      </div>
+    </div>
+    <p class="hint">Hit rates are since reset. "This token" matches the cells that are lit. A prefetched expert counts as a RAM hit when the token arrives, and its bytes still show up under SSD. Tok/s is the sketch above, not a benchmark.</p>
+
+    <div class="tiers">
+      <section class="tier vram" aria-labelledby="vram-title">
+        <div class="tier-head">
+          <h3 id="vram-title">VRAM</h3>
+          <span id="vram-meta"></span>
+        </div>
+        <div class="grid slots" id="vram-grid" role="img" aria-label="VRAM tier"></div>
+      </section>
+      <section class="tier ram" aria-labelledby="ram-title">
+        <div class="tier-head">
+          <h3 id="ram-title">RAM</h3>
+          <span id="ram-meta"></span>
+        </div>
+        <div class="grid slots" id="ram-grid" role="img" aria-label="RAM tier"></div>
+      </section>
+      <section class="tier ssd" aria-labelledby="ssd-title">
+        <div class="tier-head">
+          <h3 id="ssd-title">SSD</h3>
+          <span id="ssd-meta"></span>
+        </div>
+        <div class="grid catalog" id="ssd-grid" role="img" aria-label="SSD catalog"></div>
+        <div class="legend" aria-hidden="true">
+          <span><i class="swatch vram"></i> VRAM hit</span>
+          <span><i class="swatch ram"></i> RAM hit</span>
+          <span><i class="swatch read"></i> Read from SSD</span>
+          <span><i class="swatch waste"></i> Unused prefetch</span>
+          <span><i class="swatch cold"></i> Cold expert</span>
+        </div>
+      </section>
+    </div>
+
+    <div class="chart-card">
+      <h3>Modeled tok/s as the cache warms</h3>
+      <svg id="chart" viewBox="0 0 300 120" preserveAspectRatio="none" role="img" aria-label="Chart of modeled tokens per second"></svg>
+      <div class="chart-scale"><span>0</span><span id="chart-ceil">ceiling</span></div>
+      <p class="hint">One point per token. The dashed line is the made-up compute ceiling, about 83 tok/s, drawn so a cliff and a warm cache share one scale. It is not 54 tok/s.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="gotcha-title">
+    <h2 id="gotcha-title">Three ways the cache stops helping</h2>
+    <div class="gotchas">
+      <article class="gotcha">
+        <h3>1. Near-uniform routing</h3>
+        <p>A visit note keeps reusing one band of experts, so the hot slots earn their keep. A prompt mix that hops topics, or a skew near zero, spreads the 12 picks across the catalog. The same VRAM and RAM then miss, and SSD bandwidth dominates the made-up tok/s.</p>
+        <button type="button" id="show-uniform">Show near-uniform routing</button>
+      </article>
+      <article class="gotcha">
+        <h3>2. VRAM below the active set</h3>
+        <p>The quoted post says VRAM has to fit at least the active experts. At 8 slots the 12 experts this token routes cannot all stay resident. The sketch adds a stall in proportion to the shortfall, and modeled tok/s falls off a cliff even when RAM is large and the note repeats.</p>
+        <button type="button" id="show-cliff">Show the VRAM cliff</button>
+      </article>
+      <article class="gotcha">
+        <h3>3. Prefetch that guesses wrong</h3>
+        <p>Prefetch hides SSD time only when the guess is an expert the token actually uses. The misprediction slider marks the rest as wasted reads. At 100% wrong, those bytes still move, and the real experts are read as well.</p>
+        <button type="button" id="show-waste">Show wasted reads</button>
+      </article>
+    </div>
+    <p style="margin-top:12px"><button type="button" id="show-warm">Show a warm, concentrated cache</button></p>
+  </section>
+
+  <section class="try" aria-labelledby="try-title">
+    <h2 id="try-title">Try it for real</h2>
+    <p>Magnitude ships a desktop app for macOS, Windows, and Linux, plus a CLI. The quoted post points at the download page and the repo. This page does not install or run it.</p>
+    <p>Download: <a href="https://magnitude.dev/download">magnitude.dev/download</a></p>
+    <p>Repo, Apache-2.0: <a href="https://github.com/magnitudedev/magnitude">github.com/magnitudedev/magnitude</a></p>
+    <p>Site: <a href="https://magnitude.dev">magnitude.dev</a></p>
+    <p>Docs: <a href="https://docs.magnitude.dev">docs.magnitude.dev</a></p>
+    <p>Posts: <a href="https://x.com/nickbaumann_/status/2125358178690838963">@nickbaumann_</a> · <a href="https://x.com/tomgreenwald/status/2125348896805175791">@tomgreenwald</a></p>
+  </section>
+
+  <footer>
+    <p>Illustrative simulation. Copperline Physical Therapy is fictional. Made-up numbers, not Magnitude's code, and not its benchmarks. The 54 tok/s Mac mini figure is claimed by the author.</p>
+    <p><a href="https://x.com/nickbaumann_/status/2125358178690838963">Bookmark</a> · <a href="https://x.com/tomgreenwald/status/2125348896805175791">Quoted post</a> · <a href="https://github.com/magnitudedev/magnitude">Repo</a> · <a href="https://magnitude.dev">magnitude.dev</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
