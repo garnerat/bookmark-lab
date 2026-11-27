@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LLM-to-code harness — Saltbox Kitchen — Bookmark Lab</title>
+<meta name="description" content="An illustrative simulation of a harness that turns repeated invoice steps into replayed rules. Saltbox Kitchen is fictional. Made-up prices, not AgentRun's benchmarks.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%239c3418'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Illustrative simulation · Saltbox Kitchen</p>
+    <h1>LLM-to-code harness</h1>
+    <p class="lede">Saltbox Kitchen is a fictional restaurant with two kitchens, East Market and River Ward. One back office pays the vendors: produce, meat, dairy, linens, and beer and wine. The same invoices show up every week.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/_aj/status/2102061534956662818">@_aj</a>:</p>
+    <blockquote>
+      <p>We built a new harness using @typesafeai's Jev that cuts the cost of repetitive work by 90%. The harness learns the job as it runs, moving steps from LLM calls to code. Running 100,000 compliance alerts costs &gt;$290K on Opus 5. With agentrun() we got it down to &lt;$26K.</p>
+    </blockquote>
+    <p class="source">A follow-up says the workflow DSL is open source at <a href="https://agentrun.ai/">agentrun.ai</a>. The long version is <a href="https://agentrun.ai/blog/agentrun-a-harness-for-repetitive-knowledge-work">Miguel Rios Berrios, “AgentRun: a harness for repetitive knowledge work”</a> (18 Sep 2026). An agent does the repetitive job, then more of it becomes a workflow of code, typed questions, and a model only on the odd cases. On the authors' figures a full Opus 5 agent was about $2.89 a compliance alert and the tuned workflow about $0.25, and 100,000 alerts about $290K versus about $26K. Jev, from TypeSafe, is described there as a typed question answered in about 150 milliseconds. The site describes the project as open source under Apache-2.0. This page does not run Jev, the DSL, or any model.</p>
+  </header>
+
+  <section class="caveat" aria-label="What this page is">
+    <p><strong>Illustrative simulation.</strong> Saltbox Kitchen, the two kitchens, and the vendors were invented for this page. A model step is priced here at $0.03 and 1.6 seconds. A replayed step is $0.00 and 8 milliseconds. Those rates are round numbers, not a quote from Opus, Jev, or anyone else. Illustrative numbers, not benchmarks. Nothing on this page calls a network.</p>
+    <noscript>
+      <p>JavaScript streams the invoices, the meters, and the charts. Without it, the default sketch is this. 320 made-up invoices, five steps each. After 8 matching answers a step replays for $0. The quiet month costs $9.60 against $48.00 if every step stayed on the model, and 1,280 model calls are avoided. Average latency falls from 8.0 seconds to about 1.6 seconds. Handwritten slips never match, so they stay on the model. Turn on the mid-run surprise and leave the spot-check off: Hale &amp; Brisket's chuck is up 14%, River &amp; Rind's columns have moved, Linen &amp; Loom has added chef coats, and 0 of 61 jumps over 8% are flagged. The cost stays $9.60 because the stale rules are free. Turn the spot-check on, one invoice in 10: 55 of 61 jumps are flagged, 8 rules are demoted, and the sketch costs $16.95.</p>
+    </noscript>
+  </section>
+
+  <section aria-labelledby="idea-title">
+    <h2 id="idea-title">What this sketch is doing</h2>
+    <p><strong>What it is.</strong> Each invoice takes five steps: name the vendor, read the lines, file them on the chart of accounts, flag any price more than 8% above the last order, and send it to the bookkeeper or the manager. Every step starts as a model call.</p>
+    <p><strong>Why the bill falls.</strong> River &amp; Rind, Hale &amp; Brisket, Millhouse, Linen &amp; Loom, and Cork &amp; Cask keep sending the same kind of invoice. After enough identical answers, the harness saves that answer and replays it. A replay is free in this sketch. The all-model line keeps climbing. The harness line flattens. A handwritten slip never matches a saved answer, so it stays on the model. That is the odd case the write-up keeps a fallback for.</p>
+    <p><strong>When it is dangerous.</strong> A saved answer is not the 8% rule. “Hale &amp; Brisket is in band” does not compare this invoice with the last one. When chuck goes up 14%, or River &amp; Rind moves its columns, or chef coats show up on a linen bill, the replay still says last month's answer and looks finished. A spot-check sends every Nth invoice back through the model for the steps that already graduated. A disagreement deletes that rule. The check costs money. Skipping it is cheaper until the invoice changes.</p>
+    <p class="hint">The write-up's point is to graduate the procedure: code does the arithmetic, a typed question does a closed decision, and the model is reserved for what still has to be read. This sketch graduates by replaying a repeated answer. That is the cheap version, and it is the version that misses a jump.</p>
+  </section>
+
+  <section class="try" aria-labelledby="try-title">
+    <h2 id="try-title">Try it</h2>
+    <p>Three runs, same 320 invoices. Each button sets the controls and starts the stream.</p>
+    <div class="tries">
+      <button type="button" id="try-quiet">1. Run the quiet month</button>
+      <button type="button" id="try-stale">2. Let a rule go stale</button>
+      <button type="button" id="try-spot">3. Spot-check and demote</button>
+    </div>
+    <ol class="tries-copy">
+      <li>Watch the five steps flip from LLM to CODE. The harness cost peels away from the all-model line.</li>
+      <li>The surprise hits at invoice 144. With no spot-check, the catch rate on jumps over 8% falls to 0%, and chef coats are filed to Linens.</li>
+      <li>Every 10th invoice is asked of the model again. A disagreement knocks that rule back to LLM, and the catch rate recovers.</li>
+    </ol>
+  </section>
+
+  <section id="lab" aria-labelledby="lab-title">
+    <h2 id="lab-title">The back office, one stream</h2>
+    <p>In this sketch each step reads the invoice itself, so you can watch that step graduate and fail on its own. A real pipeline would pass the parsed lines forward.</p>
+
+    <div class="controls">
+      <label class="slider" for="count">
+        <span class="row"><span>Invoices</span> <strong id="count-val">320</strong></span>
+        <input id="count" type="range" min="200" max="500" step="20" value="320">
+        <span class="hint">The learning cost is paid once. A longer stream spends more of its time on replay.</span>
+      </label>
+      <label class="slider" for="threshold">
+        <span class="row"><span>Matching answers before code</span> <strong id="threshold-val">8</strong></span>
+        <input id="threshold" type="range" min="4" max="20" step="1" value="8">
+        <span class="hint">Lower graduates sooner. Higher keeps the model in the loop longer.</span>
+      </label>
+      <div>
+        <p class="kicker">Mid-run surprise</p>
+        <button type="button" id="surprise" aria-pressed="false">Surprise off</button>
+        <p class="hint">At 45% of the run, Hale &amp; Brisket raises chuck 14%, River &amp; Rind changes its columns, and Linen &amp; Loom adds chef coats.</p>
+      </div>
+      <div>
+        <p class="kicker">Drift check</p>
+        <button type="button" id="spot" aria-pressed="false">Spot-check off</button>
+        <label class="slider" for="every">
+          <span class="row"><span>Sample</span> <strong id="every-val">1 in 10</strong></span>
+          <input id="every" type="range" min="4" max="20" step="1" value="10">
+          <span class="hint">On those invoices, graduated steps are asked of the model again. Used when spot-check is on.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="transport" role="group" aria-label="Playback">
+      <button type="button" id="run">Run</button>
+      <button type="button" id="pause">Pause</button>
+      <button type="button" id="skip">Skip to end</button>
+      <button type="button" id="reset">Reset</button>
+    </div>
+
+    <div id="banner" class="banner" hidden></div>
+
+    <div class="job">
+      <p id="progress">Press Run. The quiet month is the default.</p>
+      <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+      <p class="who" id="who"></p>
+      <p class="blurb" id="blurb"></p>
+      <div class="pills" id="pills"></div>
+      <p class="hint" id="sample-note"></p>
+    </div>
+
+    <ol class="pipeline" id="pipeline">
+      <li data-step="vendor">
+        <div class="step-top"><h3>1. Identify vendor</h3><span class="badge wait" id="badge-vendor">—</span></div>
+        <p class="hint">Whose invoice is this?</p>
+        <p id="detail-vendor"></p>
+        <p class="replay" id="replay-vendor"></p>
+      </li>
+      <li data-step="extract">
+        <div class="step-top"><h3>2. Extract line items</h3><span class="badge wait" id="badge-extract">—</span></div>
+        <p class="hint">What rows and prices are on the page?</p>
+        <p id="detail-extract"></p>
+        <p class="replay" id="replay-extract"></p>
+      </li>
+      <li data-step="map">
+        <div class="step-top"><h3>3. Map to accounts</h3><span class="badge wait" id="badge-map">—</span></div>
+        <p class="hint">Food cost, beverage, linens, Uniforms, or delivery. Chef coats belong on Uniforms.</p>
+        <p id="detail-map"></p>
+        <p class="replay" id="replay-map"></p>
+      </li>
+      <li data-step="price">
+        <div class="step-top"><h3>4. Check the price</h3><span class="badge wait" id="badge-price">—</span></div>
+        <p class="hint">Flag a line more than 8% above the last order.</p>
+        <p id="detail-price"></p>
+        <p class="replay" id="replay-price"></p>
+      </li>
+      <li data-step="route">
+        <div class="step-top"><h3>5. Route for approval</h3><span class="badge wait" id="badge-route">—</span></div>
+        <p class="hint">Bookkeeper when it is ordinary. Manager when a price jumped.</p>
+        <p id="detail-route"></p>
+        <p class="replay" id="replay-route"></p>
+      </li>
+    </ol>
+    <p class="hint legend-note">LLM is a model call. CODE replays a saved answer. CHECK is a spot-check: the model looked again. A red CODE badge means that saved answer has already been wrong. A red outline on a pill means this invoice's replay was wrong.</p>
+
+    <div class="metrics" aria-label="Live meters">
+      <div class="metric cost">
+        <span>Harness cost</span>
+        <strong id="harness">$0.00</strong>
+        <em id="harness-sub">Illustrative $0.03 a model step</em>
+      </div>
+      <div class="metric base">
+        <span>All-model cost</span>
+        <strong id="baseline">$0.00</strong>
+        <em id="baseline-sub">Every step stays on the model</em>
+      </div>
+      <div class="metric avoid">
+        <span>LLM calls avoided</span>
+        <strong id="avoided">0</strong>
+        <em id="avoided-sub">of 0 model steps</em>
+      </div>
+      <div class="metric time">
+        <span>Average latency</span>
+        <strong id="latency">0.0 s</strong>
+        <em id="latency-sub">all-model 0.0 s</em>
+      </div>
+      <div class="metric acc" id="metric-acc">
+        <span>Step accuracy</span>
+        <strong id="accuracy">—</strong>
+        <em id="accuracy-sub">Answers matching the scripted invoice</em>
+      </div>
+      <div class="metric catch" id="metric-catch">
+        <span>Jump catch rate</span>
+        <strong id="catch">No jumps yet</strong>
+        <em id="catch-sub">Lines more than 8% above the last order</em>
+      </div>
+    </div>
+    <p class="hint">Illustrative prices, not a quote and not a benchmark. Model step $0.03 and 1.6 seconds. Code step $0.00 and 8 milliseconds. The all-model meter is the same invoices with every step left on the model.</p>
+
+    <div class="charts">
+      <div class="chart-card">
+        <h3>Cumulative cost</h3>
+        <svg id="cost-chart" viewBox="0 0 300 120" preserveAspectRatio="none" role="img" aria-label="Chart of cumulative harness cost against the all-model cost"></svg>
+        <p class="hint">Solid is the harness. Dashed is every step on the model. The mark, when the surprise is on, is the invoice where the vendors change.</p>
+      </div>
+      <div class="chart-card">
+        <h3>Jumps over 8% that were flagged</h3>
+        <svg id="catch-chart" viewBox="0 0 300 120" preserveAspectRatio="none" role="img" aria-label="Chart of the running catch rate for price jumps"></svg>
+        <p class="hint">The line starts at the first real jump. A stale price rule sits on 0%. A spot-check pulls it back up after the rule is demoted.</p>
+      </div>
+    </div>
+
+    <div class="log-card">
+      <h3 id="log-title">Latest misses and demotions</h3>
+      <p class="hint" id="log-count">Nothing has gone wrong yet.</p>
+      <ul id="log"></ul>
+    </div>
+  </section>
+
+  <footer>
+    <p>Illustrative simulation. Saltbox Kitchen is fictional. Illustrative numbers, not benchmarks.</p>
+    <p><a href="https://x.com/_aj/status/2102061534956662818">Source post</a> · <a href="https://agentrun.ai/">agentrun.ai</a> · <a href="https://agentrun.ai/blog/agentrun-a-harness-for-repetitive-knowledge-work">Write-up</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
