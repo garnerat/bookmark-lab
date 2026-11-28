@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agent Spend Ledger — Tallgrass Studio — Bookmark Lab</title>
+<meta name="description" content="An illustrative simulation of linking fictional agent sessions to pull requests and allocating the spend. Tallgrass Studio is a made-up Cincinnati shop. No network calls.">
+<link rel="stylesheet" href="./styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23215c38'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <a class="back" href="../../index.html">Bookmark Lab</a>
+    <p class="kicker">Illustrative simulation · Tallgrass Studio</p>
+    <h1>Agent Spend Ledger</h1>
+    <p class="lede">Tallgrass Studio is a fictional four-person web design and marketing shop in Cincinnati. Priya, Owen, Maya, and Luis are fictional too. They use coding and writing agents on client sites, proposals, and the studio’s own admin.</p>
+    <p class="source">Andrew bookmarked <a href="https://x.com/clairevo/status/2108364438642507817">Claire Vo (@clairevo)</a>, 9 Oct 2026:</p>
+    <blockquote>
+      <p>I can tell you where every penny of token spend is going against my business, can you?</p>
+      <p>This whole analysis cost me $0.12</p>
+      <p>Here's how I track everything my agents are doing to tie AI use to business impact</p>
+    </blockquote>
+    <p class="source">In the thread she reads Codex and Claude Code session logs and Cursor’s local database, then pulls cloud-agent records, GitHub pull requests, and billing invoices. Embeddings propose pairs. A small model (she names Jev) judges whether a pair is the same workstream. The kept links become a graph, the graph is clustered, and a model (she names Gemini) names the groups. Usage is then cut four ways: tokens, estimated cost, real cost, and session hours, by business line, week, tool, or model. She later says estimated value means the API list price of the tokens, as against what was actually paid. Figures she reports include a launch around $4k, billing admin around $20 a month, about $1.5k a month paid for about $5k a month of list-price tokens, half of pull requests as singletons, and $0.12 to run the analysis.</p>
+    <p class="source">This page does not run embeddings, a judge model, or Gemini. The similarity scores and the yes-or-no judge marks are prepared. Tallgrass is a smaller shop than the one in the thread, and every number here is made up.</p>
+  </header>
+
+  <section class="caveat" aria-label="What this page is">
+    <p><strong>Illustrative, fictional.</strong> Hearth &amp; Rye Bakery, Keller &amp; Moss Law, and Riverbend Youth Soccer are not real clients. The sessions, pull requests, and invoices were written for this page. Stand-in list rates, not a price card: Composer and Sonnet $15 / $75 per million tokens in and out, Haiku $1 / $5, Codex $2 / $10, Draft small $0.80 / $4. Cursor is 2 seats × $40 a month. Claude is 2 seats × $50 a month. Nothing on this page calls a network.</p>
+    <noscript>
+      <p>JavaScript runs the ledger. Without it, the recommended cut is similarity 0.72 with the judge on. 71 fictional sessions and 40 pull requests, eight weeks. 20 of 40 pull requests are singletons. List-price value $886.80. Actually paid $544.40. Cursor and Claude sessions list at $702.40 and the seat invoices are $360.00. The bakery rebuild cost $506.00 at list price and $2.00 on the card. Internal admin is $20.00 a month. At cutoff 0.50 with the judge off, the bakery, the soccer site, and the law blog land in one workstream, and $262.80 of other clients' list price is filed on the bakery. The same cutoff with the judge on keeps the clients apart. At 0.92, 62 of 71 sessions are singletons and their spend sits in Unattributed.</p>
+    </noscript>
+  </section>
+
+  <nav class="steps" aria-label="Pipeline">
+    <a href="#records">Records</a>
+    <a href="#link">Link</a>
+    <a href="#cluster">Groups</a>
+    <a href="#allocate">Spend</a>
+    <a href="#headline">Result</a>
+  </nav>
+
+  <section id="records" aria-labelledby="records-title">
+    <h2 id="records-title">1. Raw records</h2>
+    <p id="records-summary">Sessions, pull requests, and two months of invoices.</p>
+    <p class="hint">“Written as” is the answer key for this fictional set. Later steps can file a session somewhere else, or leave it unattributed.</p>
+    <div class="invoices" id="invoices"></div>
+    <div class="chips" role="group" aria-label="Which log" style="margin-top:12px">
+      <button type="button" id="log-sessions" aria-pressed="true">Sessions</button>
+      <button type="button" id="log-prs" aria-pressed="false">Pull requests</button>
+    </div>
+    <div class="log" id="log"></div>
+    <button type="button" id="log-more" hidden>Show all</button>
+  </section>
+
+  <section id="link" aria-labelledby="link-title">
+    <h2 id="link-title">2. Link sessions to pull requests</h2>
+    <p>A prepared similarity score sits on each plausible pair. Pairs at or above the cutoff become links. The judge, when it is on, drops pairs that only sound alike.</p>
+    <div class="tries" role="group" aria-label="Presets">
+      <button type="button" id="preset-recommended" aria-pressed="true">Recommended · 0.72, judge on</button>
+      <button type="button" id="preset-loose" aria-pressed="false">Too loose · 0.50, judge off</button>
+      <button type="button" id="preset-strict" aria-pressed="false">Too strict · 0.92, judge on</button>
+    </div>
+    <label class="slider" for="threshold">
+      <span class="row"><span>Similarity cutoff</span> <strong id="threshold-val">0.72</strong></span>
+      <input id="threshold" type="range" min="400" max="950" step="10" value="720" aria-valuemin="400" aria-valuemax="950" aria-valuenow="720" aria-valuetext="0.72">
+      <span class="hint">Higher keeps only close pairs. Lower glues more records together.</span>
+    </label>
+    <button type="button" id="judge" aria-pressed="true">Judge on</button>
+    <p class="hint">Off at 0.72, one lookalike files the estate-planning posts onto the bakery homepage. At 0.50 the bakery, the law blog, and the soccer site become one bill. The judge pulls those pairs back apart.</p>
+    <div class="countline" aria-label="Link counts">
+      <div><strong id="link-kept">0</strong><span>links kept</span></div>
+      <div><strong id="link-above">0</strong><span>pairs over the cutoff</span></div>
+      <div><strong id="link-rejected">0</strong><span>cut by the judge</span></div>
+    </div>
+    <div id="banner" class="banner ok"><p id="link-advice"></p></div>
+    <div class="pairs" id="examples"></div>
+  </section>
+
+  <section id="cluster" aria-labelledby="cluster-title">
+    <h2 id="cluster-title">3. Cluster the links</h2>
+    <p>Each connected piece of the graph is a workstream. A singleton never joined one, so a session singleton’s spend sits in Unattributed.</p>
+    <p id="cluster-stats"></p>
+    <div class="streams" id="streams"></div>
+  </section>
+
+  <section id="allocate" aria-labelledby="allocate-title">
+    <h2 id="allocate-title">4. Allocate</h2>
+    <p>The same sessions, four ways to count them. Business line follows the clusters. Week, tool, and model come straight from the logs.</p>
+    <div class="chips" role="group" aria-label="Allocation basis">
+      <button type="button" id="basis-tokens" aria-pressed="false">Tokens</button>
+      <button type="button" id="basis-list" aria-pressed="true">List price</button>
+      <button type="button" id="basis-real" aria-pressed="false">Real paid</button>
+      <button type="button" id="basis-hours" aria-pressed="false">Hours</button>
+    </div>
+    <div id="spread-wrap" hidden>
+      <p class="kicker" style="margin-top:12px">Spread the flat seats by</p>
+      <div class="chips" role="group" aria-label="How to spread flat seats">
+        <button type="button" id="spread-tokens" aria-pressed="true">Tokens</button>
+        <button type="button" id="spread-hours" aria-pressed="false">Hours</button>
+        <button type="button" id="spread-marginal" aria-pressed="false">Marginal, $0</button>
+      </div>
+    </div>
+    <p class="kicker" style="margin-top:12px">Pivot</p>
+    <div class="chips" role="group" aria-label="Pivot">
+      <button type="button" id="pivot-line" aria-pressed="true">Business line</button>
+      <button type="button" id="pivot-week" aria-pressed="false">Week</button>
+      <button type="button" id="pivot-tool" aria-pressed="false">Tool</button>
+      <button type="button" id="pivot-model" aria-pressed="false">Model</button>
+    </div>
+    <div class="card" id="chart" style="margin-top:12px"></div>
+    <p id="basis-note"></p>
+    <p id="gap" class="hint"></p>
+  </section>
+
+  <section id="headline" aria-labelledby="headline-title">
+    <h2 id="headline-title">5. What you would tell the studio</h2>
+    <div class="metrics">
+      <div class="metric list">
+        <span>List-price value</span>
+        <strong id="list-value">$0.00</strong>
+        <em>Stand-in meter, 8 weeks</em>
+      </div>
+      <div class="metric paid">
+        <span>Actually paid</span>
+        <strong id="paid">$0.00</strong>
+        <em>Seats plus API invoices</em>
+      </div>
+    </div>
+    <p id="seats"></p>
+    <p id="months"></p>
+    <p id="bakery-line"></p>
+    <div class="compare" id="compare" aria-label="Bakery rebuild under each basis"></div>
+    <p id="ranks"></p>
+    <p id="spread-ranks"></p>
+    <p id="meter"></p>
+    <p id="admin-line"></p>
+    <p class="hint">For a client invoice, use list price or real dollars spread by tokens, and say which. For the studio budget, use real paid. One more bakery session does not raise a seat invoice. Only Codex and Draft desk move the card. Hours say where the time went.</p>
+    <p class="hint">Illustrative figures from fictional logs. Not a bill and not a quote.</p>
+  </section>
+
+  <footer>
+    <p>Illustrative simulation. Tallgrass Studio is fictional. Made-up sessions, invoices, and scores. Not a price card.</p>
+    <p><a href="https://x.com/clairevo/status/2108364438642507817">Source post</a></p>
+  </footer>
+</main>
+<p id="live" class="sr" aria-live="polite"></p>
+<script src="./model.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
